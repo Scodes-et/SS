@@ -1221,7 +1221,7 @@ const ac=o=>o.hash?{salt:String(o.salt||""),hash:String(o.hash)}:{password:Strin
 function clean(d){
  const cat=x=>({id:String(x.id||uid()),name:String(x.name||"").trim(),description:String(x.description||""),created:String(x.created||today()),
   codes:(Array.isArray(x.codes)?x.codes:[]).map(k=>({id:String(k.id||uid()),name:String(k.name||"").trim(),shortCode:String(k.shortCode==null?"":k.shortCode),description:String(k.description||""),showDesc:k.showDesc===true,copyDesc:k.copyDesc===true}))});
- const usr=u=>Object.assign({id:String(u.id||uid()),name:String(u.name||""),username:String(u.username||""),status:u.status==="active"?"active":"inactive"},
+ const usr=u=>Object.assign({id:String(u.id||uid()),name:String(u.name||""),username:String(u.username||""),status:u.status==="active"?"active":"inactive",phone:String(u.phone||"")},
   u.edit?{edit:true}:{},u.authUid?{authEmail:String(u.authEmail||""),authUid:String(u.authUid)}:{},ac(u));
  return Object.assign({users:d.users.map(usr),categories:d.categories.map(cat),settings:{},log:(Array.isArray(d.log)?d.log:[]).slice(-150).map(e=>({id:String(e.id||uid()),t:String(e.t||""),by:String(e.by||""),a:String(e.a||""),c:String(e.c||""),k:String(e.k||""),o:String(e.o==null?"":e.o),n:String(e.n==null?"":e.n),on:String(e.on||"")}))},d._dirty?{_dirty:true}:{})}
 /* ---- password hashing (PBKDF2-SHA256 + salt): never store/publish plain passwords ---- */
@@ -1429,11 +1429,11 @@ function remClear(){try{localStorage.removeItem(RK)}catch(e){}}
 const SIGN="https://firestore.googleapis.com/v1/projects/"+FB.projectId+"/databases/(default)/documents/signups";
 const rid=u=>"u_"+hex(new TextEncoder().encode(norm(u)));
 const fv=(f,k)=>(f&&f[k]&&f[k].stringValue)||"";
-const reqObj=(id,f)=>({id:id,name:fv(f,"name"),username:fv(f,"username"),salt:fv(f,"salt"),hash:fv(f,"hash"),status:fv(f,"status")||"pending",created:fv(f,"created")});
+const reqObj=(id,f)=>({id:id,name:fv(f,"name"),username:fv(f,"username"),salt:fv(f,"salt"),hash:fv(f,"hash"),phone:fv(f,"phone"),status:fv(f,"status")||"pending",created:fv(f,"created")});
 async function getReq(un){try{const r=await fetch(SIGN+"/"+rid(un)+"?key="+FB.apiKey,{cache:"no-store"});
  if(r.status===404)return{state:"none"};if(r.status===403)return{state:"deny"};if(!r.ok)return{state:"err"};
  const j=await r.json();return{state:"ok",d:reqObj(rid(un),j.fields)}}catch(e){return{state:"err"}}}
-async function createReq(o){try{const f={};["name","username","salt","hash"].forEach(k=>f[k]={stringValue:o[k]});
+async function createReq(o){try{const f={};["name","username","salt","hash","phone"].forEach(k=>f[k]={stringValue:String(o[k]||"")});
  f.status={stringValue:"pending"};f.created={stringValue:new Date().toISOString()+(o.mark?"~"+o.mark:"")};
  const r=await fetch(SIGN+"?documentId="+rid(o.username)+"&key="+FB.apiKey,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:f})});
  if(r.ok)return"ok";if(r.status===409)return"taken";if(r.status===403)return"deny";return"err"}catch(e){return"err"}}
@@ -1447,6 +1447,24 @@ async function loadReqs(){if(!isAdm()||!tok)return;let nx;
  const ch=JSON.stringify(nx)!==JSON.stringify(REQ);REQ=nx;if(ch&&isAdm()&&!$("#modal").innerHTML)render()}
 async function reqPatch(id,st){const idt=await fbToken();const r=await fetch(SIGN+"/"+id+"?updateMask.fieldPaths=status&key="+FB.apiKey,{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{status:{stringValue:st}}})});if(!r.ok)throw{message:"PERMISSION_DENIED"}}
 async function reqDel(id){const idt=await fbToken();const r=await fetch(SIGN+"/"+id+"?key="+FB.apiKey,{method:"DELETE",headers:{Authorization:"Bearer "+idt}});if(!r.ok&&r.status!==404)throw{message:"PERMISSION_DENIED"}}
+const cleanPh=s=>cNorm(s).replace(/[\s\-()]/g,""),okPh=s=>/^\+?\d{8,15}$/.test(s);
+/* ===== Phone updates from existing employees (Firestore collection "phoneupd") ===== */
+const PHU="https://firestore.googleapis.com/v1/projects/"+FB.projectId+"/databases/(default)/documents/phoneupd";
+let PH={list:[],err:"",ok:false};
+const phObj=(id,f)=>({id:id,name:fv(f,"name"),username:fv(f,"username"),phone:fv(f,"phone"),created:fv(f,"created")});
+async function createPh(o){try{const f={};["name","username","phone"].forEach(k=>f[k]={stringValue:String(o[k]||"")});f.created={stringValue:new Date().toISOString()};
+ const r=await fetch(PHU+"?documentId="+encodeURIComponent(o.id)+"&key="+FB.apiKey,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:f})});
+ if(r.ok)return"ok";if(r.status===409)return"dup";if(r.status===403)return"deny";return"err"}catch(e){return"err"}}
+async function phDel(id){const idt=await fbToken();const r=await fetch(PHU+"/"+id+"?key="+FB.apiKey,{method:"DELETE",headers:{Authorization:"Bearer "+idt}});if(!r.ok&&r.status!==404)throw{message:"PERMISSION_DENIED"}}
+async function loadPh(){if(!isAdm()||!tok)return;let nx;
+ try{const idt=await fbToken();const r=await fetch(PHU+"?pageSize=300",{headers:{Authorization:"Bearer "+idt},cache:"no-store"});
+  if(r.ok){const j=await r.json();nx={list:(j.documents||[]).map(d=>phObj(d.name.split("/").pop(),d.fields)).sort((a,b)=>String(b.created).localeCompare(String(a.created))),err:"",ok:true}}
+  else nx={list:PH.list,err:r.status===403?"rules":"net",ok:false}}
+ catch(e){nx={list:PH.list,err:"net",ok:false}}
+ const ch=JSON.stringify(nx)!==JSON.stringify(PH);PH=nx;if(ch&&isAdm()&&!$("#modal").innerHTML)render()}
+function phSection(){if(!PH.list.length)return PH.err==="rules"?'<div class="card" style="margin-bottom:14px"><small>تعذر تحميل تحديثات أرقام التليفون. أضف قاعدة phoneupd في Firestore (Settings ← Rules).</small></div>':"";
+ return`<div class="hd"><h2>Phone Updates <span class="badge w">${PH.list.length}</span></h2><button class="btn gh" data-act="phref">⟳ Refresh</button></div><div class="tw" style="margin-bottom:18px"><table><tr><th>Name</th><th>Username</th><th>Phone</th><th>Date</th><th>Actions</th></tr>${PH.list.map(q=>`<tr><td>${esc(q.name)}</td><td class="ltr">${esc(q.username)}</td><td class="ltr">${esc(q.phone)}</td><td class="ltr">${esc((q.created||"").slice(0,10))}</td><td><button class="btn sm" data-act="phok" data-id="${q.id}">Apply</button><button class="btn rd sm" data-act="phno" data-id="${q.id}">Reject</button></td></tr>`).join("")}</table></div>`}
+const needPh=()=>{if(!session||session.role!=="user"||session.pre)return null;const u=S.users.find(x=>x.id===session.uid);if(!u||u.phone)return null;try{if(localStorage.getItem("ph_"+u.id))return null}catch(e){}return u};
 const pendCount=()=>REQ.list.filter(x=>x.status==="pending").length;
 
 /* ===== Code suggestions from employees (Firestore collection "codereqs") ===== */
@@ -1480,11 +1498,11 @@ function reqSection(){
  else if(REQ.err&&!L.length)body='<div class="empty">تعذر الاتصال بالإنترنت.</div>';
  else if(!REQ.ok&&!L.length)body='<div class="empty"><i class=spn></i> Loading...</div>';
  else if(!L.length)body='<div class="empty">No new signup requests.</div>';
- else body=`<table><tr><th>Name</th><th>Username</th><th>Date</th><th>Status</th><th>Actions</th></tr>${L.map(q=>`<tr><td>${esc(q.name)}</td><td class="ltr">${esc(q.username)}</td><td class="ltr">${esc((q.created||"").slice(0,10))}</td><td><span class="badge ${q.status==="rejected"?"i":"w"}">${q.status==="rejected"?"Rejected":"Pending"}</span></td><td><button class="btn sm" data-act="reqok" data-id="${q.id}">Approve</button>${q.status==="rejected"?`<button class="btn rd sm" data-act="reqdel" data-id="${q.id}">Delete</button>`:`<button class="btn rd sm" data-act="reqno" data-id="${q.id}">Reject</button>`}</td></tr>`).join("")}</table>`;
+ else body=`<table><tr><th>Name</th><th>Username</th><th>Phone</th><th>Date</th><th>Status</th><th>Actions</th></tr>${L.map(q=>`<tr><td>${esc(q.name)}</td><td class="ltr">${esc(q.username)}</td><td class="ltr">${esc(q.phone||"—")}</td><td class="ltr">${esc((q.created||"").slice(0,10))}</td><td><span class="badge ${q.status==="rejected"?"i":"w"}">${q.status==="rejected"?"Rejected":"Pending"}</span></td><td><button class="btn sm" data-act="reqok" data-id="${q.id}">Approve</button>${q.status==="rejected"?`<button class="btn rd sm" data-act="reqdel" data-id="${q.id}">Delete</button>`:`<button class="btn rd sm" data-act="reqno" data-id="${q.id}">Reject</button>`}</td></tr>`).join("")}</table>`;
  return`<div class="hd"><h2>Signup Requests${pc?` <span class="badge w">${pc}</span>`:""}</h2><button class="btn gh" data-act="reqref">⟳ Refresh</button></div><div class="tw">${body}</div>`}
 function rulesCard(){const em=tok&&tok.email?tok.email:"ADMIN_EMAIL";
- const r="match /signups/{id} {\n  allow get: if true;\n  allow create: if request.resource.data.status == 'pending'\n    && request.resource.data.keys().hasOnly(['name','username','salt','hash','status','created'])\n    && request.resource.data.name is string && request.resource.data.name.size() < 80\n    && request.resource.data.username is string && request.resource.data.username.size() < 40;\n  allow list, update, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}\n\nmatch /codereqs/{id} {\n  allow create: if request.resource.data.status == 'pending'\n    && request.resource.data.keys().hasOnly(['type','name','shortCode','description','by','uid','targetId','oldName','oldCode','catName','status','created'])\n    && request.resource.data.type in ['add','edit']\n    && request.resource.data.name is string && request.resource.data.name.size() < 100\n    && request.resource.data.shortCode is string && request.resource.data.shortCode.size() < 200\n    && request.resource.data.description is string && request.resource.data.description.size() < 300\n    && request.resource.data.by is string && request.resource.data.by.size() < 80;\n  allow get, list, update, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}\n\nmatch /notes/{id} {\n  allow get: if true;\n  allow create, update: if request.resource.data.keys().hasOnly(['text','t','by'])\n    && request.resource.data.text is string && request.resource.data.text.size() <= 20000\n    && request.resource.data.t is int\n    && request.resource.data.by is string && request.resource.data.by.size() < 80;\n  allow list, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}";
- return`<div class="card" style="max-width:760px"><h3>Signup Rules</h3><p style="margin-bottom:12px;color:var(--mut);line-height:1.9;font-size:.9rem">عشان إنشاء الحساب واقتراحات الأكواد من الموظفين يشتغلوا، افتح Firebase Console ← Firestore Database ← Rules، والصق القواعد دي (لو قاعدة signups موجودة قبل كده، ضيف بس قاعدة codereqs) جوه <b class="ltr">match /databases/{database}/documents</b> جنب القواعد الحالية، وبعدها Publish. مرة واحدة بس.</p><pre class="rules" id="rulesTx">${esc(r)}</pre><div class="row" style="justify-content:flex-start;margin-top:12px"><button class="btn gh" data-act="copyrules">Copy Rules</button></div></div>`}
+ const r="match /signups/{id} {\n  allow get: if true;\n  allow create: if request.resource.data.status == 'pending'\n    && request.resource.data.keys().hasOnly(['name','username','phone','salt','hash','status','created'])\n    && request.resource.data.name is string && request.resource.data.name.size() < 80\n    && request.resource.data.username is string && request.resource.data.username.size() < 40;\n  allow list, update, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}\n\nmatch /codereqs/{id} {\n  allow create: if request.resource.data.status == 'pending'\n    && request.resource.data.keys().hasOnly(['type','name','shortCode','description','by','uid','targetId','oldName','oldCode','catName','status','created'])\n    && request.resource.data.type in ['add','edit']\n    && request.resource.data.name is string && request.resource.data.name.size() < 100\n    && request.resource.data.shortCode is string && request.resource.data.shortCode.size() < 200\n    && request.resource.data.description is string && request.resource.data.description.size() < 300\n    && request.resource.data.by is string && request.resource.data.by.size() < 80;\n  allow get, list, update, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}\n\nmatch /phoneupd/{id} {\n  allow create: if request.resource.data.keys().hasOnly(['name','username','phone','created'])\n    && request.resource.data.phone is string && request.resource.data.phone.size() < 25\n    && request.resource.data.name is string && request.resource.data.name.size() < 80\n    && request.resource.data.username is string && request.resource.data.username.size() < 40;\n  allow get, list, update, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}\n\nmatch /notes/{id} {\n  allow get: if true;\n  allow create, update: if request.resource.data.keys().hasOnly(['text','t','by'])\n    && request.resource.data.text is string && request.resource.data.text.size() <= 20000\n    && request.resource.data.t is int\n    && request.resource.data.by is string && request.resource.data.by.size() < 80;\n  allow list, delete: if request.auth != null && request.auth.token.email == '"+em+"';\n}";
+ return`<div class="card" style="max-width:760px"><h3>Signup Rules</h3><p style="margin-bottom:12px;color:var(--mut);line-height:1.9;font-size:.9rem">عشان إنشاء الحساب واقتراحات الأكواد من الموظفين يشتغلوا، افتح Firebase Console ← Firestore Database ← Rules، والصق القواعد دي (لو القواعد موجودة قبل كده، استبدل قاعدة signups بالجديدة — فيها حقل phone — وضيف قاعدة phoneupd) جوه <b class="ltr">match /databases/{database}/documents</b> جنب القواعد الحالية، وبعدها Publish. مرة واحدة بس.</p><pre class="rules" id="rulesTx">${esc(r)}</pre><div class="row" style="justify-content:flex-start;margin-top:12px"><button class="btn gh" data-act="copyrules">Copy Rules</button></div></div>`}
 
 /* ===== Login / Signup tabs ===== */
 const brandSide=()=>`<aside class="lbrand"><span class="lorb o1"></span><span class="lorb o2"></span><img src="${LOGO_W}" alt="etisalat" width="260"><h2>Short Code Assistant</h2><p>ابحث عن الكود المناسب وانسخه في ثوانٍ.</p><ul class="lfeat"><li><i>${I.search}</i><span>بحث فوري في كل الفولدرات والأكواد</span></li><li><i>${I.folder}</i><span>أكواد منظمة في فولدرات واضحة</span></li><li><i>${I.bell}</i><span>إشعارات وتحديثات لحظية من الإدارة</span></li></ul></aside>`;
@@ -1512,6 +1530,7 @@ function signupView(){
  $("#app").innerHTML=`<div class="lx"><div class="lxcard"><aside class="lxleft" style="background-image:url(${LX_IMG})" role="img" aria-label="etisalat - ShortCode Assistant"></aside><form class="lxright su" id="sf" autocomplete="off" novalidate><h1>Create Account</h1>${LX_UL}<p class="lxsub">Join SC# and enjoy a smarter experience</p>
   <div class="lxf">${LXI.u}<input class="ar" id="sn" name="n" placeholder="Full Name" maxlength="60"></div>
   <div class="lxf">${LXI.u}<input id="su" name="u" placeholder="User Name" maxlength="30" autocapitalize="none" spellcheck="false"></div>
+  <div class="lxf">${LXI.u}<input id="sph" name="ph" type="tel" inputmode="tel" placeholder="Phone Number" maxlength="20" autocapitalize="none" spellcheck="false" dir="ltr"></div>
   <div class="lxf">${LXI.p}<input id="sp" name="p" type="password" placeholder="Password" maxlength="64"><button type="button" class="lxeye" id="seye" aria-label="Show password">${IC_EYE_OFF}</button></div>
   <div class="lxerr" id="se" role="alert"></div><button class="lxbtn" id="sbtn"><span>Create Account</span>${LXI.go}</button>
   <p class="lxback">Already have an account? <button type="button" data-lm="in">Login</button></p>
@@ -1519,19 +1538,20 @@ function signupView(){
  bindTabs();const sp=$("#sp");
  $("#seye").onclick=()=>{const v=sp.type==="password";sp.type=v?"text":"password";$("#seye").innerHTML=v?IC_EYE:IC_EYE_OFF;sp.focus()};
  $("#sn").focus();
- $("#sf").onsubmit=async e=>{e.preventDefault();const f=e.target,n=f.n.value.trim(),un=f.u.value.trim(),pw=f.p.value,er=$("#se"),b=$("#sbtn");
+ $("#sf").onsubmit=async e=>{e.preventDefault();const f=e.target,n=f.n.value.trim(),un=f.u.value.trim(),ph=cleanPh(f.ph.value),pw=f.p.value,er=$("#se"),b=$("#sbtn");
   if(n.length<2){er.textContent="Please enter your full name.";return}
   if(!/^[^\s@\/]{3,30}$/u.test(un)){er.textContent="Username must be 3 to 30 characters, with no spaces or @.";return}
+  if(!okPh(ph)){er.textContent="Please enter a valid phone number (8 to 15 digits).";return}
   if(pw.length<6){er.textContent="Password must be at least 6 characters.";return}
   const taken=()=>norm(un)==="admin"||S.users.some(v=>norm(v.username)===norm(un));
   if(taken()){er.textContent="Username already taken, choose another.";return}
   b.disabled=true;er.textContent="Checking...";
   try{
    await refreshUsers();if(taken()){er.textContent="Username already taken, choose another.";b.disabled=false;return}
-   const salt=rnd(),hash=await H(salt,pw);b.disabled=false;er.textContent="";signupStep2(n,un,salt,hash);return
+   const salt=rnd(),hash=await H(salt,pw);b.disabled=false;er.textContent="";signupStep2(n,un,salt,hash,ph);return
    }catch(ex){console.error(ex);er.textContent="Could not send the request. Check your connection and try again."}
   b.disabled=false}}
-function signupStep2(n,un,salt,hash){
+function signupStep2(n,un,salt,hash,ph){
  const ok=LXI.lock.replace(' class="lxic"','');
  $("#sf").innerHTML=`<div class="lxdone"><div class="lxok">${ok}</div><h2>Almost done</h2><p>Is the admin with you? Enter the 6-digit admin code to activate your account now. Otherwise, send your request and the admin will approve it.</p><div class="otp" id="otp" dir="ltr">${[1,2,3,4,5,6].map(k=>`<input class="otpi" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" aria-label="Digit ${k}">`).join("")}</div><div class="lxerr" id="oe" role="alert"></div><button type="button" class="lxbtn" id="osend"><span>Send for admin approval</span>${LXI.go}</button><p class="lxback"><button type="button" id="oback">Back</button></p></div>`;
  bindTabs();
@@ -1539,7 +1559,7 @@ function signupStep2(n,un,salt,hash){
  const lock=v=>{busy=v;ins.forEach(i=>i.disabled=v);sb.disabled=v};
  const done=act=>{$("#sf").innerHTML=`<div class="lxdone"><div class="lxok">${I.check}</div><h2>${act?"Account activated ✓":"Request sent"}</h2><p>${act?"The admin approved it. You can log in now with your username and password.":"The admin will review it. After approval, you can log in with your username and password."}</p><button type="button" class="lxbtn" id="sback"><span>Back to Login</span>${LXI.go}</button></div>`;bindTabs();$("#sback").onclick=()=>{lmode="in";loginView()}};
  const send=async c=>{lock(true);oe.textContent="Sending request...";
-  try{const res=await createReq({name:n,username:un,salt:salt,hash:hash,mark:c?await admMark(un,salt):""});
+  try{const res=await createReq({name:n,username:un,phone:ph,salt:salt,hash:hash,mark:c?await admMark(un,salt):""});
    if(res==="ok"){done(!!c);return}
    oe.textContent=res==="taken"?"Username already taken. Go back and choose another.":res==="deny"?"Account creation is currently disabled. Contact the admin.":"Could not send the request. Check your connection and try again."}
   catch(ex){console.error(ex);oe.textContent="Could not send the request. Check your connection and try again."}
@@ -1596,7 +1616,7 @@ function loginView(){
    if(!email){er.textContent=bad;return}
    er.textContent="Verifying...";
    try{await fbSignIn(email,p)}catch(ex){const m=fbMsg(ex);er.textContent=m==="INVALID_LOGIN"?bad:m;return}
-   session={role:"admin",name:email};page="dash";remember();REQ={list:[],err:"",ok:false};loadReqs();CREQ={list:[],err:"",ok:false};loadCReqs();NT={list:[],ok:false};LST=[];LOK=false;lopen=lfold=null;loadNotifs();
+   session={role:"admin",name:email};page="dash";remember();REQ={list:[],err:"",ok:false};loadReqs();CREQ={list:[],err:"",ok:false};loadCReqs();PH={list:[],err:"",ok:false};loadPh();NT={list:[],ok:false};LST=[];LOK=false;lopen=lfold=null;loadNotifs();
    if(S._dirty)pushRemote();else{const r=await fetchRemote();if(r&&r.cats){setRem(r);S=fromRemote(r);save(true)}}
    render()
   }catch(ex){console.error(ex);er.textContent="Could not verify. Check your connection and that the page is opened via https."}}}
@@ -1639,13 +1659,13 @@ function userBody(){
   (c.codes.length?`<div class="grid fo5 gs">${c.codes.map(k=>tileBtn(k,"",ed?1:0,c.id)).join("")}</div>`:'<div class="empty">No codes in this folder.</div>')}
 function userView(){
  if(session&&session.role==="user")setTimeout(()=>{nwInit();kcInit();kcSetBtn()},0);
- $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img src="${LOGO_T}" alt="etisalat"><span class="vr"></span><div><h1>Short Code Assistant</h1><small>Welcome, ${esc(session.name)}${session.canEdit?'<button class="pen'+(session.edit?" on":"")+'" data-act="etoggle" title="Edit mode">✎</button>'+(session.edit?" Edit mode on":""):""}</small></div></div><div class="uact"><button class="tg umb" data-act="us_menu" title="Menu" aria-label="Menu">${I.menu}</button><button class="hb${KC.open?" on":""}" data-act="kcalc" title="Calculator" aria-label="Calculator">${I.calc}<span>Calculator</span></button><button class="hb" data-act="notes" title="My Notes">${I.note}<span>My Notes</span></button><button class="hb nb" id="nbell" data-act="nopen" title="Notifications">${I.bell}<span>Notifications</span>${unreadN()?`<em class="nbd">${unreadN()>9?"9+":unreadN()}</em>`:""}</button><button class="hb rf${updAvail?" new":""}" id="rfb" data-act="urefresh" title="Refresh">${RFI}<span>Refresh</span></button><button class="hb tgl" data-act="theme" title="Dark / Light mode" aria-label="Dark / Light mode">${TGI}<span class="lm">Dark Mode</span><span class="ld">Light Mode</span></button><button class="hb lo" data-act="logout" title="Logout">${I.logout}<span>Logout</span></button></div></div><div class="ushell">${uSide()}<div class="uwrap">${(session.wantEdit&&!session.canEdit)?`<div class="bn" style="margin-bottom:12px"><span>⚠ صلاحية التعديل غير مفعّلة على حسابك: ${esc(session.editErr||"تعذر تسجيل الدخول لصلاحية التعديل")}</span></div>`:""}<div id="syncbar">${syncHTML()}</div>${(uview==="codes")?`<div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or code names..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div>`:""}<div id="ubody" class="in">${userBody()}</div></div></div><footer class="ufoot"><em>Smarter. Faster. Easier.</em></footer>`}
+ $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img src="${LOGO_T}" alt="etisalat"><span class="vr"></span><div><h1>Short Code Assistant</h1><small>Welcome, ${esc(session.name)}${session.canEdit?'<button class="pen'+(session.edit?" on":"")+'" data-act="etoggle" title="Edit mode">✎</button>'+(session.edit?" Edit mode on":""):""}</small></div></div><div class="uact"><button class="tg umb" data-act="us_menu" title="Menu" aria-label="Menu">${I.menu}</button><button class="hb${KC.open?" on":""}" data-act="kcalc" title="Calculator" aria-label="Calculator">${I.calc}<span>Calculator</span></button><button class="hb" data-act="notes" title="My Notes">${I.note}<span>My Notes</span></button><button class="hb nb" id="nbell" data-act="nopen" title="Notifications">${I.bell}<span>Notifications</span>${unreadN()?`<em class="nbd">${unreadN()>9?"9+":unreadN()}</em>`:""}</button><button class="hb rf${updAvail?" new":""}" id="rfb" data-act="urefresh" title="Refresh">${RFI}<span>Refresh</span></button><button class="hb tgl" data-act="theme" title="Dark / Light mode" aria-label="Dark / Light mode">${TGI}<span class="lm">Dark Mode</span><span class="ld">Light Mode</span></button><button class="hb lo" data-act="logout" title="Logout">${I.logout}<span>Logout</span></button></div></div><div class="ushell">${uSide()}<div class="uwrap">${needPh()?`<div class="bn" style="margin-bottom:12px"><span>📱 تحديث مطلوب: من فضلك سجّل رقم تليفونك.</span><button class="btn sm" data-act="phupd">تحديث الآن</button></div>`:""}${(session.wantEdit&&!session.canEdit)?`<div class="bn" style="margin-bottom:12px"><span>⚠ صلاحية التعديل غير مفعّلة على حسابك: ${esc(session.editErr||"تعذر تسجيل الدخول لصلاحية التعديل")}</span></div>`:""}<div id="syncbar">${syncHTML()}</div>${(uview==="codes")?`<div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or code names..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div>`:""}<div id="ubody" class="in">${userBody()}</div></div></div><footer class="ufoot"><em>Smarter. Faster. Easier.</em></footer>`}
 
 /* ----- Admin ----- */
 function adminView(){
  const nav=[["dash",I.dash,"Dashboard"],["cats",I.folder,"Categories"],["codes",I.hash,"Short Codes"],["creq",I.inbox,"Code Requests"],["notif",I.bell,"Notifications"],["lists",I.list,"Lists"],...(CALC.ok&&!CALC.f?[["calc",I.calc,"Charge Calculator"]]:[]),["users",I.users,"Users"],["log",I.activity,"Activity"],["settings",I.gear,"Settings"]];
- const side=`<div class="side${menu?" open":""}"><div class="sbrand"><img src="${LOGO_T}" alt="etisalat"><div><b>Short Code Assistant</b><small>Admin Panel</small></div></div>${nav.map(n=>`<a class="${page===n[0]?"on":""}" data-act="nav" data-id="${n[0]}">${n[1]}<span>${n[2]}</span>${(n[0]==="users"?pendCount():n[0]==="creq"?cpend():0)?`<em class="nb">${n[0]==="users"?pendCount():cpend()}</em>`:""}</a>`).join("")}<div class="sp"></div><a class="tgl" data-act="theme">${TGI}<span class="lm">Dark Mode</span><span class="ld">Light Mode</span></a><div class="suser">${esc(session.name)}</div><a class="lo" data-act="logout">${I.logout}<span>Logout</span></a></div>`;
- $("#app").innerHTML=`<div class="top"><button class="tmn" data-act="menu" aria-label="Menu">${I.menu}</button><img src="${LOGO_T}" alt="etisalat"><div class="ttl2"><b>SC# ShortCode Assistant</b><small>Admin Panel</small></div><span class="tsp"></span><button class="tg" data-act="theme" aria-label="Dark / Light mode">${TGI}</button></div><div class="shell">${side}<div class="main"><div id="syncbar">${syncHTML()}</div>${page==="users"&&pendCount()?reqSection():""}${adminPage()}${page==="users"&&!pendCount()?reqSection():""}</div></div>`}
+ const side=`<div class="side${menu?" open":""}"><div class="sbrand"><img src="${LOGO_T}" alt="etisalat"><div><b>Short Code Assistant</b><small>Admin Panel</small></div></div>${nav.map(n=>`<a class="${page===n[0]?"on":""}" data-act="nav" data-id="${n[0]}">${n[1]}<span>${n[2]}</span>${(n[0]==="users"?pendCount()+PH.list.length:n[0]==="creq"?cpend():0)?`<em class="nb">${n[0]==="users"?pendCount()+PH.list.length:cpend()}</em>`:""}</a>`).join("")}<div class="sp"></div><a class="tgl" data-act="theme">${TGI}<span class="lm">Dark Mode</span><span class="ld">Light Mode</span></a><div class="suser">${esc(session.name)}</div><a class="lo" data-act="logout">${I.logout}<span>Logout</span></a></div>`;
+ $("#app").innerHTML=`<div class="top"><button class="tmn" data-act="menu" aria-label="Menu">${I.menu}</button><img src="${LOGO_T}" alt="etisalat"><div class="ttl2"><b>SC# ShortCode Assistant</b><small>Admin Panel</small></div><span class="tsp"></span><button class="tg" data-act="theme" aria-label="Dark / Light mode">${TGI}</button></div><div class="shell">${side}<div class="main"><div id="syncbar">${syncHTML()}</div>${page==="users"?phSection():""}${page==="users"&&pendCount()?reqSection():""}${adminPage()}${page==="users"&&!pendCount()?reqSection():""}</div></div>`}
 const qL=t=>"\xab"+esc(t)+"\xbb",fmtL=t=>{const d=new Date(t);return isNaN(d)?"":d.toLocaleString("en-GB",{hour12:false})};
 const logTxt=e=>e.a==="addFolder"?"أضاف فولدر "+qL(e.c):e.a==="addCode"?"أضاف كود "+qL(e.k)+' <span class="ltr">('+esc(e.n)+")</span> في فولدر "+qL(e.c):e.a==="editCode"?"عدّل كود "+qL(e.on&&e.on!==e.k?e.on+" ← "+e.k:e.k)+" في "+qL(e.c)+(e.o!==e.n?' <span class="ltr">'+esc(e.o)+" → "+esc(e.n)+"</span>":""):esc(e.a);
 function adminPage(){
@@ -1666,7 +1686,7 @@ function adminPage(){
  if(page==="cats")return`<div class="hd"><h2>Categories</h2><button class="btn" data-act="addcat">+ Add Category</button></div><div class="tw">${S.categories.length?`<table><tr><th>Order</th><th>Category Name</th><th>Description</th><th>Codes</th><th>Created</th><th>Actions</th></tr>${S.categories.map((c,i)=>`<tr data-drow="cat" data-gid="all" data-id="${c.id}"><td>${DH(c.id)}</td><td>${esc(c.name)}</td><td>${esc(c.description)}</td><td>${c.codes.length}</td><td>${esc(c.created||"")}</td><td><button class="btn sm" data-act="editcat" data-id="${c.id}">Edit</button><button class="btn rd sm" data-act="delcat" data-id="${c.id}">Delete</button></td></tr>`).join("")}</table>`:'<div class="empty">لا توجد فئات.</div>'}</div>`;
  if(page==="codes"){const rows=allCodes().filter(x=>!fcat||x.cat.id===fcat);
   return`<div class="hd"><h2>Short Codes</h2><div class="row"><select class="btn gh" data-chg="fcat"><option value="">كل الفئات</option>${S.categories.map(c=>`<option value="${c.id}"${fcat===c.id?" selected":""}>${esc(c.name)}</option>`).join("")}</select><button class="btn gh" data-act="impx">⬆ Import</button><button class="btn gh" data-act="expx">⬇ Excel</button><button class="btn" data-act="addcode">+ Add Code</button></div></div><div class="tw">${rows.length?`<table><tr><th>Order</th><th>Category</th><th>Code Name</th><th>Short Code</th><th>Actions</th></tr>${rows.map(x=>{return`<tr data-drow="code" data-gid="${x.cat.id}" data-id="${x.k.id}"><td>${DH(x.k.id)}</td><td>${esc(x.cat.name)}</td><td>${esc(x.k.name)}</td><td class="ltr">${esc(x.k.shortCode)}</td><td><button class="btn sm" data-act="editcode" data-id="${x.k.id}">Edit</button><button class="btn rd sm" data-act="delcode" data-id="${x.k.id}">Delete</button></td></tr>`}).join("")}</table>`:'<div class="empty">لا توجد أكواد.</div>'}</div>`}
- if(page==="users")return`<div class="hd"><h2>Users</h2><button class="btn" data-act="adduser">+ Add User</button></div><div class="tw">${S.users.length?`<table><tr><th>Name</th><th>Username</th><th>Status</th><th>Edit Codes</th><th>Actions</th></tr>${S.users.map(u=>`<tr><td>${esc(u.name)}</td><td class="ltr">${esc(u.username)}</td><td><span class="badge ${u.status==="active"?"a":"i"}">${u.status==="active"?"Active":"Inactive"}</span></td><td>${u.edit?'<span class="badge a">✎ تعديل</span>':"—"}</td><td><button class="btn sm" data-act="edituser" data-id="${u.id}">Edit</button><button class="btn gr sm" data-act="toguser" data-id="${u.id}">${u.status==="active"?"Disable":"Enable"}</button><button class="btn rd sm" data-act="deluser" data-id="${u.id}">Delete</button></td></tr>`).join("")}</table>`:'<div class="empty">لا يوجد مستخدمون.</div>'}</div>`;
+ if(page==="users")return`<div class="hd"><h2>Users</h2><button class="btn" data-act="adduser">+ Add User</button></div><div class="tw">${S.users.length?`<table><tr><th>Name</th><th>Username</th><th>Phone</th><th>Status</th><th>Edit Codes</th><th>Actions</th></tr>${S.users.map(u=>`<tr><td>${esc(u.name)}</td><td class="ltr">${esc(u.username)}</td><td class="ltr">${u.phone?esc(u.phone):"—"}</td><td><span class="badge ${u.status==="active"?"a":"i"}">${u.status==="active"?"Active":"Inactive"}</span></td><td>${u.edit?'<span class="badge a">✎ تعديل</span>':"—"}</td><td><button class="btn sm" data-act="edituser" data-id="${u.id}">Edit</button><button class="btn gr sm" data-act="toguser" data-id="${u.id}">${u.status==="active"?"Disable":"Enable"}</button><button class="btn rd sm" data-act="deluser" data-id="${u.id}">Delete</button></td></tr>`).join("")}</table>`:'<div class="empty">لا يوجد مستخدمون.</div>'}</div>`;
  if(page==="log"){const L=(S.log||[]).slice().reverse(),q=t=>"«"+esc(t)+"»",fmt=t=>{const d=new Date(t);return isNaN(d)?"":d.toLocaleString("en-GB",{hour12:false})};
   const tx=e=>e.a==="addFolder"?"أضاف فولدر "+q(e.c):e.a==="addCode"?"أضاف كود "+q(e.k)+' <span class="ltr">('+esc(e.n)+")</span> في فولدر "+q(e.c):e.a==="editCode"?"عدّل كود "+q(e.on&&e.on!==e.k?e.on+" ← "+e.k:e.k)+" في "+q(e.c)+(e.o!==e.n?' <span class="ltr">'+esc(e.o)+" → "+esc(e.n)+"</span>":""):esc(e.a);
   return`<div class="hd"><h2>Activity</h2><div class="row"><button class="btn gh" data-act="logref">⟳ Refresh</button><button class="btn rd" data-act="logclr">Clear Log</button></div></div><div class="tw">${L.length?`<table><tr><th>الوقت</th><th>الموظف</th><th>العملية</th></tr>${L.map(e=>`<tr><td class="ltr">${esc(fmt(e.t))}</td><td>${esc(e.by)}</td><td>${tx(e)}</td></tr>`).join("")}</table>`:'<div class="empty">لا توجد تعديلات من الموظفين حتى الآن.</div>'}</div>`}
@@ -2112,12 +2132,28 @@ function act(a,id){
  case"kcalc":kcToggle();break;
  case"logout":nwTeardown();KC={uid:"",open:false,min:false,x:null,y:null,expr:"",res:"",done:false};const kw=$("#kw");if(kw)kw.innerHTML="";updAvail=false;calcV={p:"",n:""};lmode="in";closePop();q="";tok=null;session=null;ucat=ucode=null;menu=false;closeModal();render();break;
  case"theme":{const d=document.documentElement,n=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=n;try{localStorage.setItem("ShortCodeAssistant_theme",n)}catch(e){}break}
+ case"phref":loadPh();toast("جاري التحديث");break;
+ case"phok":{const q=PH.list.find(x=>x.id===id);if(!q)break;const u=S.users.find(x=>x.id===id);
+  if(!u){toast("المستخدم غير موجود","err");PH.list=PH.list.filter(x=>x.id!==id);phDel(id).catch(()=>{});render();break}
+  u.phone=q.phone;PH.list=PH.list.filter(x=>x.id!==id);ok();toast("تم تحديث رقم "+u.name);phDel(id).catch(e=>console.error(e));break}
+ case"phno":{PH.list=PH.list.filter(x=>x.id!==id);render();phDel(id).catch(e=>console.error(e));break}
+ case"phupd":{const u=needPh();if(!u)break;
+  formModal("تحديث بيانات الحساب",'<p style="margin-bottom:10px;color:var(--mut);font-size:.9rem;line-height:1.7">اكتب رقم تليفونك واسم المستخدم وكلمة المرور للتأكيد.</p>'+inp("Phone Number","phone","","tel",1)+inp("Username","username","","text",1)+inp("Password","password","","password",1),"إرسال",async d=>{
+   const ph=cleanPh(d.phone||""),un=norm(d.username||""),pw=d.password||"";
+   if(!okPh(ph))return"رقم التليفون غير صحيح (من 8 إلى 15 رقم).";
+   if(!un||!pw)return"جميع الحقول مطلوبة.";
+   if(un!==norm(u.username)||await H(u.salt,pw)!==u.hash)return"اسم المستخدم أو كلمة المرور غير صحيحة.";
+   const r=await createPh({id:u.id,name:u.name,username:u.username,phone:ph});
+   if(r==="deny")return"الخدمة غير مفعّلة حاليًا. تواصل مع الأدمن.";
+   if(r==="err")return"تعذر الإرسال. تأكد من الاتصال وحاول مرة أخرى.";
+   try{localStorage.setItem("ph_"+u.id,"1")}catch(e){}
+   toast("تم الإرسال للأدمن، شكرًا");render()});break}
  case"reqref":loadReqs();toast("جاري التحديث");break;
  case"copyrules":copyText(($("#rulesTx")||{}).textContent||"").then(o=>toast(o?"تم نسخ القواعد":"تعذر النسخ",o?"":"err"));break;
  case"reqok":{const q=REQ.list.find(x=>x.id===id);if(!q)break;
   if(!/^[0-9a-f]{64}$/.test(q.hash)||!q.salt){toast("بيانات الطلب غير صالحة","err");break}
   if(norm(q.username)==="admin"||S.users.some(x=>norm(x.username)===norm(q.username))){toast("اسم المستخدم موجود بالفعل","err");break}
-  S.users.push({id:uid(),name:q.name,username:q.username,status:"active",salt:q.salt,hash:q.hash});
+  S.users.push({id:uid(),name:q.name,username:q.username,status:"active",phone:q.phone||"",salt:q.salt,hash:q.hash});
   REQ.list=REQ.list.filter(x=>x.id!==id);ok();toast("تمت الموافقة، تقدر "+q.name+" يدخل دلوقتي");
   (async()=>{await pushRemote();try{if(!S._dirty)await reqDel(id);else await reqPatch(id,"approved")}catch(e){console.error(e)}})();break}
  case"reqno":{const q=REQ.list.find(x=>x.id===id);if(!q)break;
@@ -2127,7 +2163,7 @@ function act(a,id){
   confirmModal("حذف الطلب نهائيًا؟ ممكن بعدها نفس اليوزر يقدّم من جديد.","Delete",async()=>{
    try{await reqDel(id);REQ.list=REQ.list.filter(x=>x.id!==id);render();toast("تم حذف الطلب")}catch(e){toast(fbMsg(e),"err")}},"Delete Request");break}
  case"menu":menu=!menu;render();break;
- case"nav":page=id;menu=false;render();if(id==="users")loadReqs();if(id==="creq")loadCReqs();if(id==="notif")loadNotifs();if(id==="lists"){lopen=lfold=null;loadNotifs()}if(id==="log")act("logref");break;
+ case"nav":page=id;menu=false;render();if(id==="users"){loadReqs();loadPh()}if(id==="creq")loadCReqs();if(id==="notif")loadNotifs();if(id==="lists"){lopen=lfold=null;loadNotifs()}if(id==="log")act("logref");break;
  case"logref":{if(S._dirty||pushing){toast("فيه تعديلات لسه بتتحفظ، جرّب بعد لحظات","err");break}
   fetchRemote().then(r=>{if(!r||!r.cats){toast("تعذر جلب البيانات من Firebase","err");return}setRem(r);S=fromRemote(r);save(true);if(isAdm())render()});break}
  case"logclr":confirmModal("هل أنت متأكد من مسح سجل التعديلات؟","Clear",()=>{S.log=[];ok()},"Clear Log");break;
@@ -2174,8 +2210,9 @@ function act(a,id){
  case"delcode":confirmModal("هل أنت متأكد من حذف هذا الكود؟","Delete",()=>{S.categories.forEach(c=>c.codes=c.codes.filter(x=>x.id!==id));ok()});break;
  case"adduser":case"edituser":{const u=a==="edituser"?S.users.find(x=>x.id===id):null;
   const st=`<div class="fld"><label>Status</label><select name="status"><option value="active"${!u||u.status==="active"?" selected":""}>Active</option><option value="inactive"${u&&u.status!=="active"?" selected":""}>Inactive</option></select></div>`;
-  formModal(u?"Edit User":"Add User",inp("Full Name","name",u?u.name:"","text",1)+inp("Username","username",u?u.username:"","text",1)+inp("Password"+(u?" (اتركه فارغًا لعدم التغيير)":""),"password","","password",!u)+st+`<label class="ck"><input type="checkbox" name="edit" value="1"${u&&u.edit?" checked":""}> يسمح له بإضافة وتعديل وحذف الأكواد</label>`,u?"Save":"Create User",async d=>{
-   const n=d.name.trim(),un=d.username.trim(),pw=d.password;
+  formModal(u?"Edit User":"Add User",inp("Full Name","name",u?u.name:"","text",1)+inp("Username","username",u?u.username:"","text",1)+inp("Phone Number","phone",u?u.phone||"":"","tel")+inp("Password"+(u?" (اتركه فارغًا لعدم التغيير)":""),"password","","password",!u)+st+`<label class="ck"><input type="checkbox" name="edit" value="1"${u&&u.edit?" checked":""}> يسمح له بإضافة وتعديل وحذف الأكواد</label>`,u?"Save":"Create User",async d=>{
+   const n=d.name.trim(),un=d.username.trim(),pw=d.password,ph=cleanPh(d.phone||"");
+   if(ph&&!okPh(ph))return"رقم التليفون غير صحيح.";
    if(!n||!un||(!u&&!pw))return"جميع الحقول مطلوبة.";
    if(norm(un)==="admin"||S.users.some(x=>norm(x.username)===norm(un)&&(!u||x.id!==u.id)))return"اسم المستخدم موجود بالفعل.";
    const we=d.edit==="1";let ae=u&&u.authEmail,au=u&&u.authUid;
@@ -2184,7 +2221,7 @@ function act(a,id){
     if(!pw)return"لتفعيل صلاحية التعديل اكتب كلمة مرور جديدة للموظف.";
     if(pw.length<6)return"كلمة المرور لازم تكون 6 أحرف على الأقل لصلاحية التعديل.";
     try{ae="ed"+rnd().slice(0,12)+"@shortcodes.app";au=await fbSignUp(ae,pw)}catch(ex){return"تعذر إنشاء صلاحية التعديل: "+fbMsg(ex)}}
-   const rec={name:n,username:un,status:d.status,edit:we,authEmail:ae,authUid:au};
+   const rec={name:n,username:un,phone:ph,status:d.status,edit:we,authEmail:ae,authUid:au};
    if(u){Object.assign(u,rec);if(pw){u.salt=rnd();u.hash=await H(u.salt,pw)}}
    else{const salt=rnd();S.users.push(Object.assign({id:uid(),salt:salt,hash:await H(salt,pw)},rec))}
    ok();toast(u?"تم حفظ التعديلات":"تم إنشاء المستخدم بنجاح")});break}
@@ -2330,7 +2367,7 @@ document.addEventListener("change",async e=>{if(e.target.id!=="impx")return;cons
 function labelTables(){document.querySelectorAll(".tw table").forEach(t=>{const h=[...t.rows[0].cells].map(c=>c.textContent.trim());[...t.rows].slice(1).forEach(r=>[...r.cells].forEach((c,i)=>c.dataset.l=h[i]||""))})}
 {const _r=render;render=function(){_r();labelTables()}}
 window.addEventListener("error",e=>console.error(e.error||e.message));
-load().then(()=>{render();setInterval(poll,60000);setInterval(()=>{if(isAdm()&&!document.hidden){loadReqs();loadCReqs()}},30000)});
+load().then(()=>{render();setInterval(poll,60000);setInterval(()=>{if(isAdm()&&!document.hidden){loadReqs();loadCReqs();loadPh()}},30000)});
 
 (function(){const c=document.getElementById("credit");if(!c)return;
 const set=o=>{c.classList.toggle("open",o);c.setAttribute("aria-expanded",o?"true":"false")};
