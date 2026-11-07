@@ -1668,6 +1668,35 @@ html[data-theme] body:has(.ushell) .uside{top:0;margin-top:18px}
 .uh .uhrf.spin svg{animation:rfs .8s linear infinite}
 @media(max-width:800px){.uh .uhbtns{justify-content:center}}
 
+/* ===== v-home5: robot below the search bar, decorative right side, buttons on the right ===== */
+@media(min-width:801px){
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh{min-height:370px}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh::before{content:"";position:absolute;z-index:0;top:68px;right:0;bottom:0;width:min(560px,42%);background:radial-gradient(circle at 62% 50%,#ffffff1f 0,transparent 62%),url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%20420%20300%27%20fill=%27none%27%20stroke=%27%23fff%27%20stroke-linecap=%27round%27%3E%3Cg%20stroke-width=%271.6%27%20opacity=%27.16%27%3E%3Ccircle%20cx=%27250%27%20cy=%27150%27%20r=%2746%27/%3E%3Ccircle%20cx=%27250%27%20cy=%27150%27%20r=%2788%27/%3E%3Ccircle%20cx=%27250%27%20cy=%27150%27%20r=%27130%27/%3E%3Ccircle%20cx=%27250%27%20cy=%27150%27%20r=%27172%27/%3E%3Ccircle%20cx=%27250%27%20cy=%27150%27%20r=%27214%27/%3E%3C/g%3E%3Cg%20stroke-width=%272.4%27%20opacity=%27.2%27%3E%3Cpath%20d=%27M330%2070a110%20110%200%200%201%200%20160%27/%3E%3Cpath%20d=%27M358%2040a150%20150%200%200%201%200%20220%27/%3E%3Cpath%20d=%27M386%2010a190%20190%200%200%201%200%20280%27/%3E%3C/g%3E%3Cg%20fill=%27%23fff%27%20stroke=%27none%27%20opacity=%27.22%27%3E%3Ccircle%20cx=%2760%27%20cy=%2760%27%20r=%273%27/%3E%3Ccircle%20cx=%2796%27%20cy=%2740%27%20r=%272%27/%3E%3Ccircle%20cx=%27150%27%20cy=%27250%27%20r=%273%27/%3E%3Ccircle%20cx=%27110%27%20cy=%27220%27%20r=%272%27/%3E%3Ccircle%20cx=%27380%27%20cy=%27255%27%20r=%273%27/%3E%3Ccircle%20cx=%27395%27%20cy=%2745%27%20r=%272.5%27/%3E%3Ccircle%20cx=%2730%27%20cy=%27140%27%20r=%272%27/%3E%3Ccircle%20cx=%27200%27%20cy=%2730%27%20r=%272%27/%3E%3C/g%3E%3C/svg%3E") right center/auto 100% no-repeat;pointer-events:none}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uha{top:74px;bottom:0;width:min(520px,40%);background-size:auto 108%;background-position:-14px 50%;-webkit-mask-image:linear-gradient(90deg,#000 60%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);mask-image:linear-gradient(90deg,#000 60%,transparent 100%),linear-gradient(180deg,transparent 0,#000 22%);-webkit-mask-composite:source-in;mask-composite:intersect}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:28px;align-content:center;align-items:center;padding:84px 40px 24px min(540px,40%)}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>small,html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>h2,html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>p{grid-column:1}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtns{grid-column:2;grid-row:1/4;flex-direction:column;align-items:stretch;gap:12px;align-self:center}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtns .uhshare{justify-content:center}
+}
+
+/* ===== v-home6: wider sidebar so names do not wrap into single letters ===== */
+@media(min-width:801px){
+html[data-theme] body:has(.ushell) .uside{width:276px;flex-shrink:0}
+html[data-theme] body:has(.ushell) .uside .band span{overflow-wrap:break-word;word-break:normal;hyphens:none}
+}
+
+/* ===== account menu: theme item (moved from header) ===== */
+.uhead .avm .thm .t2{display:none}
+.uhead .avm .thm span{display:flex;align-items:center;gap:10px}
+html[data-theme=dark] .uhead .avm .thm .t1{display:none}
+html[data-theme=dark] .uhead .avm .thm .t2{display:flex}
+
+/* ===== login: slightly larger scene so the side gaps shrink ===== */
+@media(min-width:1025px){
+.lx{height:100vh;height:100dvh;min-height:0}
+.lxs{--W:min(100vw,calc(100vh*1.95));--W:min(100vw,calc(100dvh*1.95))}
+}
+
 .bx{margin-bottom:14px;padding:16px}.bx h3{margin:0 0 8px;font-size:1.1rem}.bx .tx,.tx{white-space:pre-wrap;line-height:1.9}.bx ul{margin:0;padding-inline-start:22px;line-height:1.9}.nt{border-inline-start:4px solid var(--blue)}
 .bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:14px}.bgrid .bx{margin:0}.bk{margin-bottom:14px}.bk h3{margin:0 0 8px}.bk table{min-width:380px}.fdesc{color:var(--mut);margin:0 0 14px}
 .uhead .avm{position:fixed;z-index:200}.ncell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1834,7 +1863,7 @@ const nB=t=>AF().reduce((a,f)=>a+f.blocks.filter(b=>b.t===t).length,0),allB=()=>
 const folderBtn=(c,sub,lid)=>`<button class="fo" style="${fcs(c.id)}" data-act="ucat" data-id="${c.id}"${lid?` data-lid="${lid}"`:""}><span class="fi">${I.folder}</span><b dir="auto">${esc(c.name)}</b><em class="cnt">${sub||c.blocks.length+" items"}</em></button>`;
 const listBtn=l=>`<button class="fo" style="${fcs(l.id)}" data-act="ulist" data-id="${l.id}"><span class="fi">${I.list}</span><b dir="auto">${esc(l.name)}</b><em class="cnt">${lf(l).length} folders</em></button>`;
 function homeHTML(){const n=S.lists.length,hc=(ic,v,l)=>`<button class="uhc"><i>${ic}</i><div><b>${v}</b><span>${l}</span></div></button>`;
- const hero=`<div class="uh"><div class="uha" style="background-image:url(${HERO_ART})"></div><div class="uht"><small>Welcome Back,</small><h2>${esc(ses.name)} 👋</h2><p>Your Personal Assistant for Knowledge</p><div class="uhbtns"><button type="button" class="uhshare" data-act="shareopen">${HI.share}<span>Share Link</span></button><button type="button" class="uhshare uhrf" data-act="urefresh">${RFI}<span>Refresh</span></button></div></div><div class="uhs">${hc(I.list,n,"Total Lists")}${hc(HI.folder,vis().length,"Total Folders")}${hc(HI.doc,vB(),"Total Items")}</div></div>`;
+ const hero=`<div class="uh"><div class="uha" style="background-image:url(${HERO_ART})"></div><div class="uht"><small>Welcome Back,</small><h2>${esc(ses.name)} 👋</h2><p>Your Personal Assistant for Knowledge</p><div class="uhbtns"><button type="button" class="uhshare" data-act="shareopen">${HI.share}<span>Share Link</span></button><button type="button" class="uhshare uhrf" data-act="urefresh">${RFI}<span>Refresh</span></button></div></div></div>`;
  const sc=`<div class="usc">${[[I.list,n,"Lists"],[HI.folder,vis().length,"Folders"],[HI.doc,vB(),"Items"],[HI.grid,vB("table"),"Tables"]].map((x,i)=>`<div class="sc s${i+1}"><span class="sci">${x[0]}</span><div><b>${x[1]}</b><span>${x[2]}</span></div>${spk(i)}</div>`).join("")}</div>`;
  const pf=S.lists.slice(0,6).map((l,i)=>{const c=PF_COL[i%6];return`<button class="pt" style="background:linear-gradient(145deg,${c[0]},${c[1]});--sh:${c[1]}" data-act="ulist" data-id="${l.id}">${PF_IC[i%6]}<b dir="auto">${esc(l.name)}</b><small>${lf(l).length} Folders</small></button>`}).join("");
  return hero+sc+`<div class="upn"><section class="pn"><div class="ph">${HI.star}<h3>Lists</h3></div>${pf?`<div class="pf">${pf}</div>`:'<div class="em">No lists yet.</div>'}</section></div>`+(n?`<h3 class="sh">All Lists</h3><div class="grid fo5">${S.lists.map(listBtn).join("")}</div>`:"")}
@@ -1845,9 +1874,9 @@ function userBody(){const qq=q.trim().toLowerCase();
  if(f)return`<button class="btn gh bk" data-act="uback">← Back to ${l?esc(l.name):"Home"}</button><div class="hd"><h2 class="ttl" dir="auto">${esc(f.name)}</h2></div>${f.desc?`<p class="fdesc" dir="auto">${esc(f.desc)}</p>`:""}${blocks(f)||'<div class="empty">This folder is empty.</div>'}`;
  if(l)return`<button class="btn gh bk" data-act="uback">← Back to Home</button><div class="hd"><h2 class="ttl" dir="auto">${esc(l.name)}</h2></div>${lf(l).length?`<div class="grid fo5">${lf(l).map(x=>folderBtn(x.f,"",l.id)).join("")}</div>`:'<div class="empty">No folders in this list.</div>'}`;
  cur=ulist=null;return homeHTML()}
-const accMenu=(who)=>`<div class="avw"><button class="avb" id="avb" data-act="avmenu" aria-label="Account menu"><span class="avc">${esc(initials(ses.name))}</span>${HI.down}</button><div class="avm" id="avm"><div class="avn"><b>${esc(ses.name)}</b><small>${who}</small></div><button data-act="logout">${I.logout}<span>Logout</span></button></div></div>`;
+const accMenu=(who)=>`<div class="avw"><button class="avb" id="avb" data-act="avmenu" aria-label="Account menu"><span class="avc">${esc(initials(ses.name))}</span>${HI.down}</button><div class="avm" id="avm"><div class="avn"><b>${esc(ses.name)}</b><small>${who}</small></div>${isA()?`<button data-act="aback">${I.dash}<span>Admin</span></button>`:""}<button data-act="theme" class="thm"><span class="t1">${I.moon}<b>Dark mode</b></span><span class="t2">${I.sun}<b>Light mode</b></span></button><button data-act="logout">${I.logout}<span>Logout</span></button></div></div>`;
 function userView(){const op=uside?" open":"";
- $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img class="eti" src="${ETI_LOGO}" alt="etisalat"><span class="vr"></span><div class="bt"><div class="l1"><b>3aref</b><span>Knowledge Hub</span></div></div></div><div class="uact"><button class="tg umb" data-act="us_menu" aria-label="Menu">${I.menu}</button><button class="tgp" data-act="theme" aria-label="Dark / Light mode"><span>${I.sun}</span><span>${I.moon}</span></button>${isA()?`<button class="hb" data-act="aback">${I.dash}<span>Admin</span></button>`:""}${accMenu(isA()?"Admin":"Employee")}</div></div><div class="ushell"><aside class="uside${op}"><a class="band${!cur&&!ulist?" on":""}" data-act="uhome">${I.dash}<span>Home</span></a>${S.lists.map(l=>`<a class="band${l.id===ulist?" on":""}" data-act="ulist" data-id="${l.id}">${I.list}<span dir="auto">${esc(l.name)}</span><em>${lN(l)}</em></a>`).join("")}</aside><div class="uov${op}" data-act="us_menu"></div><div class="uwrap"><div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or content..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div><div id="ubody" class="in">${userBody()}</div></div></div>`}
+ $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img class="eti" src="${ETI_LOGO}" alt="etisalat"><span class="vr"></span><div class="bt"><div class="l1"><b>3aref</b><span>Knowledge Hub</span></div></div></div><div class="uact"><button class="tg umb" data-act="us_menu" aria-label="Menu">${I.menu}</button>${accMenu(isA()?"Admin":"Employee")}</div></div><div class="ushell"><aside class="uside${op}"><a class="band${!cur&&!ulist?" on":""}" data-act="uhome">${I.dash}<span>Home</span></a>${S.lists.map(l=>`<a class="band${l.id===ulist?" on":""}" data-act="ulist" data-id="${l.id}">${I.list}<span dir="auto">${esc(l.name)}</span><em>${lN(l)}</em></a>`).join("")}</aside><div class="uov${op}" data-act="us_menu"></div><div class="uwrap"><div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or content..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div><div id="ubody" class="in">${userBody()}</div></div></div>`}
 let uside=false,menu=false;
 /* ---- admin ---- */
 function adminPage(){const FL=AF();
