@@ -1757,6 +1757,9 @@ html[data-theme=dark] .fpc{background:#1d2129;color:#eceef4}html[data-theme=dark
 @keyframes lddash{0%,100%{stroke-dasharray:30 259}50%{stroke-dasharray:170 119}}
 @keyframes ldd{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 @media(prefers-reduced-motion:reduce){.boot .ldw svg,.boot .ldw .ar,.boot .ldt::after{animation:none}}
+/* readable Delete buttons (table + modal) */
+.btn.rd,html[data-theme=dark] .btn.rd{background:#c40a04;color:#fff}
+.btn.rd:hover,html[data-theme=dark] .btn.rd:hover{background:#9c0803;color:#fff}
 </style>
 </head>
 <body>
@@ -1861,15 +1864,17 @@ const isA=()=>ses&&ses.role==="admin",F=id=>S.topics.find(x=>x.id===id)||S.lists
 /* ---- data ---- */
 const fixS=()=>{if(!Array.isArray(S.topics))S.topics=[];if(!Array.isArray(S.lists))S.lists=[]};
 async function load(){try{await load0()}finally{fixS()}}
-async function load0(){try{const r=await fetch(DOCS+"aref?key="+FB.apiKey,{cache:"no-store"});if(r.status===404)return;if(!r.ok)throw 0;
- const j=await r.json(),t=j.fields&&j.fields.json&&j.fields.json.stringValue;if(t){const d=JSON.parse(t);if(Array.isArray(d.topics))S=d;try{localStorage.setItem("aref_cache",t)}catch(e){}}}
+async function load0(){try{let r=await fetch(DOCS+"users?key="+FB.apiKey,{cache:"no-store"});if(!r.ok)throw 0;
+ let j=await r.json(),t=j.fields&&j.fields.ajson&&j.fields.ajson.stringValue;
+ if(!t){try{const r2=await fetch(DOCS+"aref?key="+FB.apiKey,{cache:"no-store"});if(r2.ok){j=await r2.json();t=j.fields&&j.fields.json&&j.fields.json.stringValue}}catch(e){}}
+ if(t){const d=JSON.parse(t);if(Array.isArray(d.topics))S=d;try{localStorage.setItem("aref_cache",t)}catch(e){}}}
  catch(e){try{const c=localStorage.getItem("aref_cache");if(c)S=JSON.parse(c)}catch(x){}}}
 async function token(){if(tok&&tok.id&&Date.now()<tok.exp)return tok.id;
  const r=await fetch("https://securetoken.googleapis.com/v1/token?key="+FB.apiKey,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(tok.ref)});
  const d=await r.json();if(!r.ok)throw d;tok.id=d.id_token;tok.ref=d.refresh_token;tok.exp=Date.now()+(+d.expires_in-60)*1000;return tok.id}
 function save(){clearTimeout(timer);timer=setTimeout(push,600)}
 async function push(){try{const idt=await token();
- const r=await fetch(DOCS+"aref?key="+FB.apiKey+"&updateMask.fieldPaths=json&updateMask.fieldPaths=updated",{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify(S)},updated:{stringValue:new Date().toISOString()}}})});
+ const r=await fetch(DOCS+"users?key="+FB.apiKey+"&updateMask.fieldPaths=ajson",{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{ajson:{stringValue:JSON.stringify(S)}}})});
  if(!r.ok)throw await r.json().catch(()=>({}));toast("Saved")}
  catch(e){toast(/PERMISSION/.test(JSON.stringify(e))?"No write permission - check Firestore Rules":"Save failed","err")}}
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
