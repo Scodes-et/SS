@@ -1678,6 +1678,16 @@ html[data-theme] body:has(.ushell) .uside{top:0;margin-top:18px}
 .uh .uhrf.spin svg{animation:rfs .8s linear infinite}
 @media(max-width:800px){.uh .uhbtns{justify-content:center}}
 
+/* ===== v-home5: bigger robot with soft edges, buttons on the right ===== */
+@media(min-width:801px){
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh{min-height:330px}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uha{top:0;bottom:0;width:min(640px,48%);background-size:auto 116%;background-position:-26px 55%;-webkit-mask-image:linear-gradient(90deg,#000 58%,transparent 100%),linear-gradient(180deg,transparent 0,#000 34%);mask-image:linear-gradient(90deg,#000 58%,transparent 100%),linear-gradient(180deg,transparent 0,#000 34%);-webkit-mask-composite:source-in;mask-composite:intersect}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:28px;align-content:center;align-items:center;padding:78px 34px 22px min(600px,46%)}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>small,html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>h2,html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>p{grid-column:1}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtns{grid-column:2;grid-row:1/4;flex-direction:column;align-items:stretch;gap:12px;align-self:center}
+html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtns .uhshare{justify-content:center}
+}
+
 /* loading screen: smaller logo with a ring */
 .boot{gap:14px}
 .boot .ldw{position:relative;width:min(200px,54vw);aspect-ratio:1;display:grid;place-items:center}
