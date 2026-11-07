@@ -1737,7 +1737,7 @@ html[data-theme=dark] .fpc{background:#1d2129;color:#eceef4}html[data-theme=dark
 /* ===== login: slightly larger scene so the side gaps shrink ===== */
 @media(min-width:1025px){
 .lx{height:100vh;height:100dvh;min-height:0}
-.lxs{--W:min(100vw,calc(100vh*1.95));--W:min(100vw,calc(100dvh*1.95))}
+.lxs{--W:max(100vw,calc(100dvh*1.7768));transform:translate(calc((100vw - var(--W))*.35),calc((100dvh - var(--W)*.5628)*-.28))}
 }
 
 .bx{margin-bottom:14px;padding:16px}.bx h3{margin:0 0 8px;font-size:1.1rem}.bx .tx,.tx{white-space:pre-wrap;line-height:1.9}.bx ul{margin:0;padding-inline-start:22px;line-height:1.9}.nt{border-inline-start:4px solid var(--blue)}
