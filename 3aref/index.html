@@ -1932,16 +1932,16 @@ async function doLogin(e){e.preventDefault();const un=e.target.u.value.trim(),pw
   if(x){
    if(await H(x.salt,pw)!==x.hash){er.textContent="Incorrect username or password.";return}
    if(x.status!=="active"){er.textContent="Your account is not active. Contact the admin.";return}
-   ses={role:"user",name:x.name};saveSes({role:"user",name:x.name})}
+   ses={role:"user",name:x.name,uid:x.id};NT={list:[],ok:false};nSeen=new Set();saveSes({role:"user",name:x.name,uid:x.id})}
   else{
    const rq=await getReq(un);let ok=false;
    if(rq.state==="ok"&&await H(rq.d.salt,pw)===rq.d.hash){const mk=rq.d.created.split("~")[1]||"";ok=!!mk&&mk===await admMark(rq.d.username,rq.d.salt)}
    if(!ok){er.textContent="Incorrect username or password.";return}
-   ses={role:"user",name:rq.d.name};saveSes({role:"user",name:rq.d.name})}}
+   ses={role:"user",name:rq.d.name,uid:rq.d.id};NT={list:[],ok:false};nSeen=new Set();saveSes({role:"user",name:rq.d.name,uid:rq.d.id})}}
  cur=null;q="";render()}catch(x){er.textContent="Could not verify. Check your connection."}finally{const b=$("#lbtn");if(b)b.disabled=false}}
 function saveSes(o){const rem=!$("#lrem")||$("#lrem").checked;try{localStorage.removeItem("aref_ses");sessionStorage.removeItem("aref_ses");(rem?localStorage:sessionStorage).setItem("aref_ses",JSON.stringify(o))}catch(e){}}
 function loadSes(){try{return JSON.parse(localStorage.getItem("aref_ses")||sessionStorage.getItem("aref_ses")||"null")}catch(e){return null}}
-function logout(){ses=tok=null;cur=lopen=ulist=null;q="";try{localStorage.removeItem("aref_ses");sessionStorage.removeItem("aref_ses")}catch(e){}render()}
+function logout(){ses=tok=null;NT={list:[],ok:false};nSeen=new Set();cur=lopen=ulist=null;q="";try{localStorage.removeItem("aref_ses");sessionStorage.removeItem("aref_ses")}catch(e){}render()}
 /* ---- blocks ---- */
 const rows=s=>String(s||"").split("\n").filter(l=>l.trim()).map(l=>l.includes("\t")?l.split("\t"):l.split("|").map(x=>x.trim()));
 const TY={text:"Text",card:"Card",table:"Table",list:"Bullet list",note:"Note"};
@@ -1960,7 +1960,9 @@ function homeHTML(){const n=S.lists.length,hc=(ic,v,l)=>`<button class="uhc"><i>
  const hero=`<div class="uh"><div class="uha" style="background-image:url(${HERO_ART})"></div><div class="uht"><small>Welcome Back,</small><h2>${esc(ses.name)} 👋</h2><p>Your Personal Assistant for Knowledge</p><div class="uhbtns"><button type="button" class="uhshare" data-act="shareopen">${HI.share}<span>Share Link</span></button><button type="button" class="uhshare uhrf" data-act="urefresh">${RFI}<span>Refresh</span></button></div></div></div>`;
  const sc=`<div class="usc">${[[I.list,n,"Lists"],[HI.folder,vis().length,"Folders"],[HI.doc,vB(),"Items"],[HI.grid,vB("table"),"Tables"]].map((x,i)=>`<div class="sc s${i+1}"><span class="sci">${x[0]}</span><div><b>${x[1]}</b><span>${x[2]}</span></div>${spk(i)}</div>`).join("")}</div>`;
  const pf=S.lists.slice(0,6).map((l,i)=>{const c=PF_COL[i%6];return`<button class="pt" style="background:linear-gradient(145deg,${c[0]},${c[1]});--sh:${c[1]}" data-act="ulist" data-id="${l.id}">${PF_IC[i%6]}<b dir="auto">${esc(l.name)}</b><small>${lf(l).length} Folders</small></button>`}).join("");
- return hero+sc+`<div class="upn"><section class="pn"><div class="ph">${HI.star}<h3>Lists</h3></div>${pf?`<div class="pf">${pf}</div>`:'<div class="em">No lists yet.</div>'}</section></div>`+(n?`<h3 class="sh">All Lists</h3><div class="grid fo5">${S.lists.map(listBtn).join("")}</div>`:"")}
+ const un=unreadN(),nm=nMine(),nr=nm.slice(0,3).map((n,i)=>`<button type="button" class="nr" data-act="nopen"><i class="n${i%3}">${[HI.mega,HI.info,I.check][i%3]}</i><div><b dir="auto">${esc(n.title||"Notification")}</b><small dir="auto">${esc(n.body)}</small></div></button>`).join(""),
+ nt=isU()?`<section class="pn"><div class="ph">${HI.bell}<h3>Notifications${un?` <em>${un}</em>`:""}</h3><button type="button" data-act="nopen">View All →</button></div>${nr||'<div class="em">No notifications yet.</div>'}</section>`:"";
+ return hero+sc+`<div class="upn"><section class="pn"><div class="ph">${HI.star}<h3>Lists</h3></div>${pf?`<div class="pf">${pf}</div>`:'<div class="em">No lists yet.</div>'}</section>${nt}</div>`+(n?`<h3 class="sh">All Lists</h3><div class="grid fo5">${S.lists.map(listBtn).join("")}</div>`:"")}
 const PF_COL=[["#ef2b34","#b5000c"],["#4f8cff","#2358d8"],["#2fcf6a","#168a3f"],["#b565f2","#7f2fd0"],["#ffa23a","#ef6a00"],["#22c7c0","#0b8c9a"]],PF_IC=[HI.globe,HI.pkg,HI.bolt,HI.gear,HI.head,HI.grid];
 function userBody(){const qq=q.trim().toLowerCase();
  if(qq){const r=[];S.lists.forEach(l=>lf(l).forEach(x=>{if(x.f.name.toLowerCase().includes(qq)||JSON.stringify(x.f.blocks).toLowerCase().includes(qq))r.push({l,f:x.f})}));return r.length?`<h3 class="sh">Folders</h3><div class="grid fo5">${r.map(o=>folderBtn(o.f,esc(o.l.name)+" · "+o.f.blocks.length+" items",o.l.id)).join("")}</div>`:'<div class="empty">No matching results.</div>'}
@@ -1970,10 +1972,82 @@ function userBody(){const qq=q.trim().toLowerCase();
  cur=ulist=null;return homeHTML()}
 const accMenu=(who)=>`<div class="avw"><button class="avb" id="avb" data-act="avmenu" aria-label="Account menu"><span class="avc">${esc(initials(ses.name))}</span>${HI.down}</button><div class="avm" id="avm"><div class="avn"><b>${esc(ses.name)}</b><small>${who}</small></div>${isA()?`<button data-act="aback">${I.dash}<span>Admin</span></button>`:""}<button data-act="pwainstall" class="ins">${_i('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>')}<span>Install app</span></button><button data-act="theme" class="thm"><span class="t1">${I.moon}<b>Dark mode</b></span><span class="t2">${I.sun}<b>Light mode</b></span></button><button data-act="logout">${I.logout}<span>Logout</span></button></div></div>`;
 function userView(){const op=uside?" open":"";
- $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img class="eti" src="${ETI_LOGO}" alt="etisalat"><span class="vr"></span><div class="bt"><div class="l1"><b>3aref</b><span>Knowledge Hub</span></div></div></div><div class="uact"><button class="tg umb" data-act="us_menu" aria-label="Menu">${I.menu}</button>${accMenu(isA()?"Admin":"Employee")}</div></div><div class="ushell"><aside class="uside${op}"><a class="band${!cur&&!ulist?" on":""}" data-act="uhome">${I.dash}<span>Home</span></a>${S.lists.map(l=>`<a class="band${l.id===ulist?" on":""}" data-act="ulist" data-id="${l.id}">${I.list}<span dir="auto">${esc(l.name)}</span><em>${lN(l)}</em></a>`).join("")}</aside><div class="uov${op}" data-act="us_menu"></div><div class="uwrap"><div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or content..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div><div id="ubody" class="in">${userBody()}</div></div></div>`}
+ $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img class="eti" src="${ETI_LOGO}" alt="etisalat"><span class="vr"></span><div class="bt"><div class="l1"><b>3aref</b><span>Knowledge Hub</span></div></div></div><div class="uact"><button class="tg umb" data-act="us_menu" aria-label="Menu">${I.menu}</button>${isU()?`<button class="hb nb" id="nbell" data-act="nopen" title="Notifications">${I.bell}<span>Notifications</span>${unreadN()?`<em class="nbd">${unreadN()>9?"9+":unreadN()}</em>`:""}</button>`:""}${accMenu(isA()?"Admin":"Employee")}</div></div><div class="ushell"><aside class="uside${op}"><a class="band${!cur&&!ulist?" on":""}" data-act="uhome">${I.dash}<span>Home</span></a>${S.lists.map(l=>`<a class="band${l.id===ulist?" on":""}" data-act="ulist" data-id="${l.id}">${I.list}<span dir="auto">${esc(l.name)}</span><em>${lN(l)}</em></a>`).join("")}</aside><div class="uov${op}" data-act="us_menu"></div><div class="uwrap"><div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or content..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div><div id="ubody" class="in">${userBody()}</div></div></div>`}
 let uside=false,menu=false;
+
+/* ===== Notifications (Firestore doc shortcodes/aref, field "notifs") ===== */
+I.trash=I.trash||_i('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>');
+I.bell=_i('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>');
+const fmtL=t=>{const d=new Date(t);return isNaN(d)?"":d.toLocaleString("en-GB",{hour12:false})};
+let NT={list:[],ok:false},nSeen=new Set(),nBusy=false;
+const nParse=t=>{try{const a=JSON.parse(t||"[]");return Array.isArray(a)?a.filter(x=>x&&x.id&&x.body).map(x=>({id:String(x.id),t:String(x.t||""),title:String(x.title||""),body:String(x.body),to:String(x.to||"all"),toName:String(x.toName||"")})):[]}catch(e){return[]}};
+const nKey=()=>"aref_nread_"+(ses&&(ses.uid||ses.name)||"");
+const nRead=()=>{try{return new Set(JSON.parse(localStorage.getItem(nKey())||"[]"))}catch(e){return new Set()}};
+const nMark=ids=>{const r=nRead();ids.forEach(i=>r.add(i));try{localStorage.setItem(nKey(),JSON.stringify([...r]))}catch(e){}};
+const isU=()=>!!ses&&ses.role==="user";
+const nMine=()=>isU()?NT.list.filter(n=>n.to==="all"||(ses.uid&&n.to===ses.uid)).slice().reverse():[];
+const unreadN=()=>{if(!isU())return 0;const r=nRead();return nMine().filter(n=>!r.has(n.id)).length};
+function updBell(){const b=$("#nbell");if(!b)return;const n=unreadN();let e=b.querySelector(".nbd");
+ if(n){if(!e){e=document.createElement("em");e.className="nbd";b.appendChild(e)}e.textContent=n>9?"9+":n}else if(e)e.remove()}
+async function nGet(){try{const r=await fetch(DOCS+"aref?key="+FB.apiKey,{cache:"no-store"});if(r.status===404)return"";if(!r.ok)return null;return fv((await r.json()).fields,"notifs")}catch(e){return null}}
+async function nPut(L){const idt=await token();
+ const r=await fetch(DOCS+"aref?key="+FB.apiKey+"&updateMask.fieldPaths=notifs",{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{notifs:{stringValue:JSON.stringify(L)}}})});
+ if(!r.ok)throw await r.json().catch(()=>({}));NT={list:L,ok:true}}
+async function loadNotifs(){
+ if(nBusy||!ses)return;nBusy=true;
+ try{
+  if(isU()&&!ses.uid){try{const x=(await users()).find(v=>v.name===ses.name);if(x)ses.uid=x.id}catch(e){}}
+  const t=await nGet();if(t===null)return;
+  const L=nParse(t),ch=!NT.ok||JSON.stringify(L)!==JSON.stringify(NT.list);NT={list:L,ok:true};
+  if(isA()){if(ch&&pg==="notif"&&!$("#modal").innerHTML)render();return}
+  if(isU()){updBell();if(ch&&!$("#modal").innerHTML&&document.activeElement!==$("#uq")&&!cur&&!ulist)render();
+   const rd=nRead(),fresh=nMine().filter(n=>!rd.has(n.id)&&!nSeen.has(n.id));
+   fresh.forEach(n=>nSeen.add(n.id));
+   if(fresh.length&&!$("#modal").innerHTML)toast("🔔 "+(fresh.length>1?"وصلك "+fresh.length+" إشعارات جديدة":"وصلك إشعار جديد"))}
+ }finally{nBusy=false}}
+const nBody=b=>{b=String(b);let c=b.split("\n").slice(0,4).join("\n").slice(0,160);if(c.length>=b.length)return esc(b);
+ if(c.length===160){const k=c.search(/\s\S*$/);if(k>100)c=c.slice(0,k)}
+ return`<span class="ns">${esc(c.trimEnd())}… <a class="nmore" data-nm>عرض المزيد</a></span><span class="nf" hidden>${esc(b)} <a class="nmore" data-nm>عرض أقل</a></span>`};
+const nHeadHTML=()=>{const u=unreadN();return`<div class="nhead"><div class="nht"><span class="nic">${I.bell}</span><div><h3>Notifications</h3><small id="nsub">${u?u+" غير مقروء":"All notifications read"}</small></div></div><button class="nx" data-act="close" title="Exit notifications" aria-label="Exit notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${u?`<div class="nbar"><button class="nra" id="nra" data-act="nreadall">${I.check}<span>تعليم الكل كمقروء</span></button></div>`:""}`};
+function showNotifs(){
+ const L=nMine(),rd=nRead();
+ $("#modal").innerHTML=`<div class="ov"><div class="md nmd">${nHeadHTML()}<div class="nlist">${L.length?L.map(n=>`<div class="ni${rd.has(n.id)?"":" new"}" data-nid="${n.id}">${n.title?`<b dir="auto">${esc(n.title)}</b>`:""}<p dir="auto">${nBody(n.body)}</p><small><span class="ltr">${esc(fmtL(n.t))}</span>${rd.has(n.id)?"":`<span class="nw">جديد</span><button class="nrd" data-act="nread" data-id="${n.id}">${I.check}<span>تعليم كمقروء</span></button>`}</small></div>`).join(""):'<div class="empty" style="padding:28px 8px">لا توجد إشعارات حتى الآن.</div>'}</div></div></div>`;
+ L.forEach(n=>nSeen.add(n.id));updBell()}
+function nRefreshHead(){const h=$(".nmd .nhead");if(!h)return;const b=h.nextElementSibling&&h.nextElementSibling.classList.contains("nbar")?h.nextElementSibling:null;const u=unreadN();const sub=$("#nsub");if(sub)sub.textContent=u?u+" غير مقروء":"All notifications read";if(!u&&b)b.remove()}
+function notifPage(){
+ const L=NT.list.slice().reverse();let body;
+ if(!NT.ok&&!L.length)body='<div class="empty"><i class=spn></i> Loading...</div>';
+ else if(!L.length)body='<div class="empty">لم يتم إرسال أي إشعارات بعد.</div>';
+ else body=`<table><tr><th>الوقت</th><th>إلى</th><th>الإشعار</th><th>Actions</th></tr>${L.map(n=>`<tr><td class="ltr">${esc(fmtL(n.t))}</td><td>${n.to==="all"?'<span class="badge a">كل الموظفين</span>':esc(n.toName||"موظف")}</td><td class="ncell" dir="auto">${n.title?`<b>${esc(n.title)}</b><br>`:""}${esc(n.body)}</td><td><button class="btn rd sm" data-act="ndel" data-id="${n.id}">Delete</button></td></tr>`).join("")}</table>`;
+ return`<div class="hd"><h2>Notifications</h2><div class="row"><button class="btn gh" data-act="nref">⟳ Refresh</button><button class="btn" data-act="nsend">+ Send Notification</button></div></div><div class="tw">${body}</div>`}
+async function nAct(a,id){
+ if(a==="nopen"){showNotifs();loadNotifs();return}
+ if(a==="nread"){nMark([id]);const el=document.querySelector('.ni[data-nid="'+id+'"]');if(el){el.classList.remove("new");el.querySelectorAll(".nw,.nrd").forEach(x=>x.remove())}updBell();nRefreshHead();return}
+ if(a==="nreadall"){nMark(nMine().map(n=>n.id));document.querySelectorAll(".nmd .ni.new").forEach(el=>{el.classList.remove("new");el.querySelectorAll(".nw,.nrd").forEach(x=>x.remove())});updBell();nRefreshHead();return}
+ if(!isA())return;
+ if(a==="nref"){loadNotifs();toast("جاري التحديث");return}
+ if(a==="nsend"){
+  let us=[];try{us=(await users()).filter(u=>u.status==="active")}catch(e){toast("تعذر تحميل قائمة الموظفين","err")}
+  const sel=`<div class="fld"><label>إرسال إلى *</label><select name="to"><option value="all">كل الموظفين</option>${us.map(u=>`<option value="${esc(u.id)}">${esc(u.name)} (${esc(u.username)})</option>`).join("")}</select></div>`;
+  formModal("إرسال إشعار",sel+inp("العنوان (اختياري)","title","","text")+txa("نص الإشعار *","body",""),"إرسال",async d=>{
+   const title=d.title.trim(),body=d.body.trim();
+   if(!body)return"اكتب نص الإشعار.";
+   if(title.length>120||body.length>3000)return"النص طويل جدًا (العنوان 120 حرف، والنص 3000 حرف كحد أقصى).";
+   const u=d.to==="all"?null:us.find(x=>x.id===d.to);
+   if(d.to!=="all"&&!u)return"الموظف غير موجود.";
+   try{const t=await nGet();if(t===null)return"تعذر الاتصال بالإنترنت.";
+    await nPut(nParse(t).concat([{id:uid(),t:new Date().toISOString(),title:title,body:body,to:d.to,toName:u?u.name:""}]).slice(-100))}
+   catch(e){console.error(e);return/PERMISSION/.test(JSON.stringify(e))?"لا توجد صلاحية كتابة - راجع Firestore Rules":"تعذر إرسال الإشعار"}
+   toast(u?"✓ تم إرسال الإشعار إلى "+u.name:"✓ تم إرسال الإشعار لكل الموظفين");render()});return}
+ if(a==="ndel"){confirmModal("حذف هذا الإشعار؟ هيختفي من عند الموظفين.","Delete",async()=>{
+   try{const t=await nGet();if(t===null)throw 0;await nPut(nParse(t).filter(x=>x.id!==id));render();toast("تم حذف الإشعار")}
+   catch(e){toast("تعذر الحذف","err")}},"Delete Notification")}}
+setInterval(()=>{if(ses&&!document.hidden&&(isU()||(isA()&&pg==="notif")))loadNotifs()},30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&isU())loadNotifs()});
+document.addEventListener("click",e=>{const a=e.target.closest("[data-nm]");if(!a)return;e.preventDefault();const p=a.closest("p");if(!p)return;const s=p.querySelector(".ns"),f=p.querySelector(".nf");if(!s||!f)return;const open=!f.hidden;f.hidden=open;s.hidden=!open});
 /* ---- admin ---- */
 function adminPage(){const FL=AF();
+ if(pg==="notif")return notifPage();
  if(pg==="dash"){const mx=Math.max(1,...FL.map(c=>c.blocks.length)),rc=FL.slice(-6).reverse();
   const dc=(t,go,b)=>`<div class="card dcard"><div class="dch"><h3>${t}</h3><button class="btn gh sm" data-act="nav" data-id="${go}">View All</button></div><div class="dcb">${b}</div></div>`,emp=m=>`<div class="empty" style="padding:24px 8px">${m}</div>`;
   const fcard=dc("Items per Folder","folders",[...FL].sort((a,b)=>b.blocks.length-a.blocks.length).slice(0,7).map(c=>`<div class="bar" style="${fcs(c.id)}"><span dir="auto">${esc(c.name)}</span><div><i style="width:${Math.max(4,c.blocks.length/mx*100)}%"></i></div><b>${c.blocks.length}</b></div>`).join("")||emp("No folders"));
@@ -1988,7 +2062,7 @@ function adminPage(){const FL=AF();
   return`<div class="hd"><h2>Lists</h2><button class="btn" data-act="addlist">+ Add List</button></div><p class="fdesc">Each list appears to employees in the side menu. Employees only see folders that are inside a list.</p><div class="tw">${rs?`<table><tr><th>Order</th><th>List Name</th><th>Folders</th><th>Items</th><th>Actions</th></tr>${rs}</table>`:'<div class="empty">No lists yet. Press + Add List.</div>'}</div>`}
  pg="folders";const rs=S.topics.map((c,i)=>`<tr><td>${mv("catup","catdn",i,FL.length,c.id)}</td><td dir="auto">${esc(c.name)}</td><td class="ncell" dir="auto">${esc(c.desc||"")}</td><td>${c.blocks.length}</td><td><button class="btn sm" data-act="aopen" data-id="${c.id}" data-from="folders">Open</button><button class="btn gh sm" data-act="editcat" data-id="${c.id}">Edit</button><button class="btn rd sm" data-act="delcat" data-id="${c.id}">Delete</button></td></tr>`).join("");
  return`<div class="hd"><h2>Folders</h2><button class="btn" data-act="addcat">+ Add Folder</button></div><div class="tw">${rs?`<table><tr><th>Order</th><th>Folder Name</th><th>Description</th><th>Items</th><th>Actions</th></tr>${rs}</table>`:'<div class="empty">No folders yet. Press + Add Folder.</div>'}</div>`}
-function adminView(){const nav=[["dash",I.dash,"Dashboard"],["folders",I.folder,"Folders"],["lists",I.list,"Lists"],["view",I.users,"Employee View"]];
+function adminView(){const nav=[["dash",I.dash,"Dashboard"],["folders",I.folder,"Folders"],["lists",I.list,"Lists"],["notif",I.bell,"Notifications"],["view",I.users,"Employee View"]];
  $("#app").innerHTML=`<div class="top"><button class="tmn" data-act="menu" aria-label="Menu">${I.menu}</button><img src="${LOGO_T}" alt="etisalat"><div class="ttl2"><b>3aref Knowledge Hub</b><small>Admin Panel</small></div><span class="tsp"></span><button class="tg" data-act="theme" aria-label="Dark / Light mode">${TGI}</button></div><div class="shell"><div class="side${menu?" open":""}"><div class="sbrand"><img src="${LOGO_T}" alt="etisalat"><div><b>3aref</b><small>Admin Panel</small></div></div>${nav.map(n=>`<a class="${pg===n[0]||(pg==="list"&&n[0]==="lists")||(pg==="folder"&&n[0]===(ret==="list"?"lists":"folders"))?"on":""}" data-act="nav" data-id="${n[0]}">${n[1]}<span>${n[2]}</span></a>`).join("")}<div class="sp"></div><a class="tgl" data-act="theme">${TGI}<span class="lm">Dark Mode</span><span class="ld">Light Mode</span></a><div class="suser">${esc(ses.name)}</div><a class="lo" data-act="logout">${I.logout}<span>Logout</span></a></div><div class="main">${adminPage()}</div></div>`}
 /* ---- login ---- */
 function loginView(){$("#app").innerHTML=`<div class="lx" style="--plate:url(${LX_PLATE})"><div class="lxs">${LX_TOP()}<form class="lxform" id="lf" autocomplete="off" novalidate><h1 class="lxh1" style="--t:170">Welcome Back!</h1>${LX_UL}<p class="lxsub" style="--t:274">Login to your account</p><div class="lxf" style="--t:347">${LXI.u}<span class="dv"></span><input id="lu" name="u" placeholder="Username" autocapitalize="none" spellcheck="false"><span class="ar">اسم المستخدم</span></div><div class="lxf pw" style="--t:437">${LXI.p}<span class="dv"></span><input id="lp" name="p" type="password" placeholder="Password"><span class="ar">كلمة المرور</span><button type="button" class="lxeye" id="eye" aria-label="Show password">${IC_EYE_OFF}</button></div><div class="lxrow" style="--t:533"><label class="lxrem"><input type="checkbox" id="lrem" checked><span>Remember me</span></label><button type="button" class="lxfp" data-act="lxforgot">Forgot Password?</button></div><div class="lxerr" id="le" role="alert" style="--t:565"></div><button class="lxbtn" id="lbtn" style="--t:587"><span class="tx">Login<em>دخول</em></span>${LXI.go}</button><div class="lxor" style="--t:684">or</div><button type="button" class="lxalt" data-act="lxsignup" style="--t:722">${LXI.up}<span class="dv2"></span><span class="t"><b>Create New Account</b></span><span class="lxcc">${LXI.chev}</span></button><div class="lxft" style="--t:836"><span>Powered by Innovation</span><i></i><span>Together for a Better Tomorrow</span></div></form></div></div>`;
@@ -2002,7 +2076,7 @@ function showFP(){if(document.querySelector(".fpo"))return;const d=document.crea
  document.body.appendChild(d);const x=()=>{d.remove();document.removeEventListener("keydown",k)},k=e=>{if(e.key==="Escape")x()};document.addEventListener("keydown",k);
  d.onclick=e=>{if(e.target===d)x()};d.querySelector("#fp2").onclick=x}
 function lxInfo(k){const m=LXMSG[k];if(!m)return;$("#modal").innerHTML=`<div class="ov"><div class="md"><h3>${m[0]}</h3><p>${m[1]}</p><p dir="rtl" style="margin-top:8px">${m[2]}</p><div class="row"><button type="button" class="btn" data-act="close">OK</button></div></div></div>`}
-function render(){try{if(!ses)loginView();else if(isA()&&pg!=="view")adminView();else userView()}catch(e){console.error(e);$("#app").innerHTML='<div class="uwrap"><div class="card">Display error. <button class="btn" data-act="logout">Back to login</button></div></div>'}}
+function render(){try{if(!ses)loginView();else if(isA()&&pg!=="view")adminView();else userView();if(isU()&&!NT.ok)loadNotifs()}catch(e){console.error(e);$("#app").innerHTML='<div class="uwrap"><div class="card">Display error. <button class="btn" data-act="logout">Back to login</button></div></div>'}}
 /* ---- forms ---- */
 function fForm(c,l){formModal(c?"Edit Folder":"Add Folder",inp("Folder name","name",c?c.name:"","text",1)+txa("Description (optional)","desc",c?c.desc||"":""),"Save",d=>{const n=(d.name||"").trim();if(!n)return"Enter the folder name.";if(c){c.name=n;c.desc=(d.desc||"").trim()}else (l?l.folders:S.topics).push({id:uid(),name:n,desc:(d.desc||"").trim(),blocks:[]});save();render()})}
 function lForm(l){formModal(l?"Rename List":"Add List",inp("List name","name",l?l.name:"","text",1),"Save",d=>{const n=(d.name||"").trim();if(!n)return"Enter the list name.";if(l)l.name=n;else S.lists.push({id:uid(),name:n,folders:[]});save();render()})}
@@ -2024,10 +2098,11 @@ document.addEventListener("click",e=>{const el=e.target.closest("[data-act]"),m=
  case"lxinfo":lxInfo(el.dataset.k);return;case"lxsignup":signupView();return;case"lxforgot":showFP();return;case"lxlogin":loginView();return;case"pwainstall":if(window.scInstall)window.scInstall();return;
  case"qclear":q="";$("#uq").value="";$("#qx").hidden=true;$("#ubody").innerHTML=userBody();return;
  case"shareopen":shareOpen();return;
+ case"nopen":case"nref":case"nsend":case"ndel":case"nread":case"nreadall":nAct(a,id);return;
  case"sharecopy":copyText(SHARE_URL).then(k=>toast(k?"Link copied":"Copy failed",k?"":"err"));return;
  case"sharemail":shareMail();return;
  case"urefresh":load().then(()=>{render();toast("Updated")});return;
- case"nav":menu=false;pg=id;cur=null;if(id==="lists"||id==="folders"||id==="dash"||id==="view")lopen=null;break;
+ case"nav":menu=false;pg=id;cur=null;if(id==="notif")loadNotifs();if(id==="lists"||id==="folders"||id==="dash"||id==="view")lopen=null;break;
  case"ucat":cur=id;q="";uside=false;if(el.dataset.lid)ulist=el.dataset.lid;window.scrollTo(0,0);break;
  case"ulist":ulist=id;cur=null;q="";uside=false;window.scrollTo(0,0);break;
  case"uhome":cur=ulist=null;q="";uside=false;break;
@@ -2053,7 +2128,7 @@ document.addEventListener("click",e=>{const el=e.target.closest("[data-act]"),m=
  render()});
 document.addEventListener("input",e=>{if(e.target.id==="uq"){q=e.target.value;$("#qx").hidden=!q;$("#ubody").innerHTML=userBody()}});
 (async()=>{$("#app").innerHTML=`<div class="boot"><div class="ldw"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="tr" cx="50" cy="50" r="46"/><circle class="ar" cx="50" cy="50" r="46"/></svg><img class="bootimg" src="${LOGO_W}" alt=""></div><div class="ldt">Loading</div></div>`;await load();
- try{const s=loadSes();if(s){ses={role:s.role,name:s.name};if(s.role==="admin"){tok={ref:s.ref,exp:0};try{await token()}catch(e){ses=tok=null}}}}catch(e){}
+ try{const s=loadSes();if(s){ses={role:s.role,name:s.name,uid:s.uid};if(s.role==="admin"){tok={ref:s.ref,exp:0};try{await token()}catch(e){ses=tok=null}}}}catch(e){}
  render();setInterval(async()=>{if(ses&&!document.querySelector("#modal .ov")&&!document.hidden){const o=JSON.stringify(S);await load();if(JSON.stringify(S)!==o)render()}},60000)})();
 
 
