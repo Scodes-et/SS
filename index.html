@@ -1689,6 +1689,12 @@ html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtn
 html[data-theme] body:has(.ushell) .uwrap:has(#ubody>.uh) #ubody>.uh .uht>.uhbtns .uhshare{justify-content:center}
 }
 
+/* ===== v-home6: wider lists sidebar so names do not wrap into single letters ===== */
+@media(min-width:801px){
+html[data-theme] body:has(.ushell) .uside{width:276px;flex-shrink:0}
+html[data-theme] body:has(.ushell) .uside .band span{overflow-wrap:break-word;word-break:normal;hyphens:none}
+}
+
 /* loading screen: smaller logo with a ring */
 .boot{gap:14px}
 .boot .ldw{position:relative;width:min(200px,54vw);aspect-ratio:1;display:grid;place-items:center}
