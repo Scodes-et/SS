@@ -1975,7 +1975,7 @@ function userView(){const op=uside?" open":"";
  $("#app").innerHTML=`<div class="uhead"><div class="ubrand"><img class="eti" src="${ETI_LOGO}" alt="etisalat"><span class="vr"></span><div class="bt"><div class="l1"><b>3aref</b><span>Knowledge Hub</span></div></div></div><div class="uact"><button class="tg umb" data-act="us_menu" aria-label="Menu">${I.menu}</button>${isU()?`<button class="hb nb" id="nbell" data-act="nopen" title="Notifications">${I.bell}<span>Notifications</span>${unreadN()?`<em class="nbd">${unreadN()>9?"9+":unreadN()}</em>`:""}</button>`:""}${accMenu(isA()?"Admin":"Employee")}</div></div><div class="ushell"><aside class="uside${op}"><a class="band${!cur&&!ulist?" on":""}" data-act="uhome">${I.dash}<span>Home</span></a>${S.lists.map(l=>`<a class="band${l.id===ulist?" on":""}" data-act="ulist" data-id="${l.id}">${I.list}<span dir="auto">${esc(l.name)}</span><em>${lN(l)}</em></a>`).join("")}</aside><div class="uov${op}" data-act="us_menu"></div><div class="uwrap"><div class="sb"><span class="sbi">${I.search}</span><input id="uq" placeholder="Search folders or content..." value="${esc(q)}" autocomplete="off"><button class="x" id="qx" data-act="qclear"${q?"":" hidden"}>✕</button></div><div id="ubody" class="in">${userBody()}</div></div></div>`}
 let uside=false,menu=false;
 
-/* ===== Notifications (Firestore doc shortcodes/aref, field "notifs") ===== */
+/* ===== Notifications (Firestore doc shortcodes/users, own field "anotifs" - separate from SC# "notifs") ===== */
 I.trash=I.trash||_i('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>');
 I.bell=_i('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>');
 const fmtL=t=>{const d=new Date(t);return isNaN(d)?"":d.toLocaleString("en-GB",{hour12:false})};
@@ -1989,9 +1989,9 @@ const nMine=()=>isU()?NT.list.filter(n=>n.to==="all"||(ses.uid&&n.to===ses.uid))
 const unreadN=()=>{if(!isU())return 0;const r=nRead();return nMine().filter(n=>!r.has(n.id)).length};
 function updBell(){const b=$("#nbell");if(!b)return;const n=unreadN();let e=b.querySelector(".nbd");
  if(n){if(!e){e=document.createElement("em");e.className="nbd";b.appendChild(e)}e.textContent=n>9?"9+":n}else if(e)e.remove()}
-async function nGet(){try{const r=await fetch(DOCS+"aref?key="+FB.apiKey,{cache:"no-store"});if(r.status===404)return"";if(!r.ok)return null;return fv((await r.json()).fields,"notifs")}catch(e){return null}}
+async function nGet(){try{const r=await fetch(DOCS+"users?key="+FB.apiKey,{cache:"no-store"});if(!r.ok)return null;return fv((await r.json()).fields,"anotifs")}catch(e){return null}}
 async function nPut(L){const idt=await token();
- const r=await fetch(DOCS+"aref?key="+FB.apiKey+"&updateMask.fieldPaths=notifs",{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{notifs:{stringValue:JSON.stringify(L)}}})});
+ const r=await fetch(DOCS+"users?key="+FB.apiKey+"&updateMask.fieldPaths=anotifs",{method:"PATCH",headers:{Authorization:"Bearer "+idt,"Content-Type":"application/json"},body:JSON.stringify({fields:{anotifs:{stringValue:JSON.stringify(L)}}})});
  if(!r.ok)throw await r.json().catch(()=>({}));NT={list:L,ok:true}}
 async function loadNotifs(){
  if(nBusy||!ses)return;nBusy=true;
