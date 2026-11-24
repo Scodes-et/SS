@@ -1733,6 +1733,47 @@ html[data-theme=dark] .ipc .ipx{background:#262b36;border-color:#343b4a;color:#c
 @media(max-width:700px){.ldx .ldp{width:150vw;flex:none}}
 @media(prefers-reduced-motion:reduce){.boot.ldx{transition:none}}
 </style>
+<style id="balcss">
+.balc{margin:16px 0;padding:18px 20px;border-radius:20px;background:var(--card);border:1px solid var(--bd);border-top:4px solid #de0702;box-shadow:0 10px 26px #3a0a0f12}
+.balh{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.balt{display:flex;align-items:center;gap:12px;min-width:0}
+.balt>i{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(145deg,#ef2b26,#b00602);color:#fff}
+.balt>i svg{width:24px;height:24px}
+.balt h3{margin:0;font-size:1.1rem}
+.balt small{display:block;color:var(--mut);margin-top:3px}
+.balb{border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:10px;padding:6px 12px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+.balb:hover{background:#8881}
+.balm{display:flex;align-items:center;gap:22px;margin:16px 0 14px;flex-wrap:wrap}
+.balv{display:flex;flex-direction:column;line-height:1.1}
+.balv b{font-size:2.6rem;font-weight:800;letter-spacing:-.02em;color:#15803d}
+.balv span{color:var(--mut);font-size:.9rem;margin-top:5px;font-weight:600}
+.balc.low .balv b{color:#d97706}
+.balc.out .balv b{color:#de0702}
+.balside{flex:1;min-width:200px}
+.balbar{height:12px;border-radius:99px;background:#8882;overflow:hidden}
+.balbar i{display:block;height:100%;border-radius:99px;background:#16a34a;transition:width .3s}
+.balc.low .balbar i{background:#d97706}
+.balc.out .balbar i{background:#de0702}
+.balst{display:flex;justify-content:space-between;gap:10px;margin-top:8px;color:var(--mut);font-size:.84rem;font-weight:600}
+.balf{display:flex;gap:10px;flex-wrap:wrap}
+.balf input{flex:1 1 160px;min-width:0;padding:11px 12px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit}
+.balf input:focus{outline:0;border-color:var(--blue)}
+.balf .btn{flex:0 0 auto}
+.balh2{display:flex;align-items:center;justify-content:space-between;margin:16px 0 4px;font-weight:800;font-size:.9rem}
+.balr{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--bd)}
+.balr:last-child{border-bottom:0}
+.balr time{color:var(--mut);font-size:.82rem;font-weight:600;flex:0 0 46px}
+.balnote{flex:1;min-width:0;overflow-wrap:anywhere;font-size:.9rem}
+.balr b{font-size:1rem;color:#de0702}
+.balx{border:0;background:#8881;color:var(--mut);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.75rem}
+.balx:hover{background:#de0702;color:#fff}
+.balem,.balmore{color:var(--mut);font-size:.86rem;padding:10px 2px;text-align:center}
+.md.balmd{max-width:520px}
+.balhist{max-height:60vh;overflow:auto;margin:8px 0 14px}
+.balday{margin-bottom:14px}
+.balds{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:#8881;font-size:.86rem;margin-bottom:4px}
+@media(max-width:520px){.balv b{font-size:2.2rem}.balc{padding:16px 14px}}
+</style>
 <style id="brcss">
 .brtop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:4px 0 14px}
 .brtit{display:flex;align-items:center;gap:12px;min-width:0}
@@ -1756,6 +1797,7 @@ html[data-theme=dark] .ipc .ipx{background:#262b36;border-color:#343b4a;color:#c
 .brc.on{background:var(--lc,var(--blue));border-color:var(--lc,var(--blue));color:#fff}
 .brc.on .brdot{background:#fff}
 .brdot{width:8px;height:8px;border-radius:50%;background:var(--lc,#de0702);display:inline-block}
+.brsc{align-items:center;padding-bottom:6px}.brsl{color:var(--mut);font-size:.85rem;font-weight:700;white-space:nowrap}.brsc .brc{padding:5px 12px;font-size:.8rem}
 .brfl{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .brfl select{width:auto;flex:1 1 170px;min-width:0;padding:10px 12px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
 .brcnt{color:var(--mut);font-size:.85rem;font-weight:600;margin:2px 2px 10px}
@@ -2702,7 +2744,7 @@ function homeHTML(){
  const rec=`<section class="pn"><div class="ph">${HI.hist}<h3>Recent Activity</h3>${act.length>5?`<button type="button" data-act="raall">${RAALL?"Show Less":"View All →"}</button>`:""}</div>${ra?`<div class="ra${RAALL?" all":""}">${ra}</div>`:'<div class="em">No activity yet. Copy a code or search to see it here.</div>'}</section>`;
  const nr=nm.slice(0,3).map((n,i)=>`<button type="button" class="nr" data-act="nopen"><i class="n${i%3}">${[HI.mega,HI.info,I.check][i%3]}</i><div><b>${esc(n.title||"Notification")}</b><small>${esc(n.body)}</small></div>${tsOf(n.t)?`<time>${agoL(tsOf(n.t))}</time>`:""}</button>`).join("");
  const nt=`<section class="pn"><div class="ph">${HI.bell}<h3>Notifications${un?` <em>${un}</em>`:""}</h3><button type="button" data-act="nopen">View All →</button></div>${nr||'<div class="em">No notifications yet.</div>'}</section>`;
- return hero+ctoolsHTML()+sc+`<div class="upn">${pop}${rec}${nt}</div>`}
+ return hero+balHTML()+ctoolsHTML()+sc+`<div class="upn">${pop}${rec}${nt}</div>`}
 function heroHTML(){return homeHTML()}
 
 const SHARE_URL="https://scodes-et.github.io/SS";
@@ -2796,12 +2838,13 @@ const BRFILE=["Layer","Shop code","Store name","Shop status","Mail group email",
 const BRSHORT=["Layer","Shop code","Store name","Shop status","Mail group email","Government","City","Address","District","Shop manager","IP phone","Sat – Wed","Thursday","Friday"];
 const BRPAL=["#de0702","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777","#4b5563"];
 const BRCK="ShortCodeAssistant_branches";
-let BR={rows:[],h:[],cd:[],nm:[],ly:[],layers:[],govs:[],sts:[],ok:false,t:"",file:"",upd:"",busy:false,err:""},BRQ={q:"",layer:"",gov:"",st:"",lim:60},BRA={q:""},brT=null,brQLog=null,brAT=null;
+let BR={rows:[],h:[],cd:[],nm:[],ly:[],gv:[],ad:[],cities:[],layers:[],govs:[],sts:[],ok:false,t:"",file:"",upd:"",busy:false,err:""},BRQ={q:"",layer:"",gov:"",st:"",lim:60},BRA={q:""},brT=null,brQLog=null,brAT=null;
 const brN=t=>sn(t).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 function brIndex(){const R=BR.rows;
  BR.h=R.map(r=>brN(r.join(" ")));BR.cd=R.map(r=>brN(r[1]));BR.nm=R.map(r=>brN(r[2]));BR.ly=R.map(r=>brN(r[0]));
  const cnt=i=>{const m=new Map();R.forEach(r=>{const v=r[i];if(v)m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),"en",{numeric:true}))};
- BR.layers=cnt(0);BR.govs=cnt(5);BR.sts=cnt(3)}
+ BR.gv=R.map(r=>brN(r[5]));BR.ad=R.map(r=>brN([r[6],r[7],r[8]].join(" ")));
+ BR.layers=cnt(0);BR.govs=cnt(5);BR.sts=cnt(3);BR.cities=cnt(6)}
 const brCol=l=>{const i=BR.layers.findIndex(x=>x[0]===l);return i<0?"#6b7280":BRPAL[i%BRPAL.length]};
 const brSt=s=>{const t=String(s||"").toLowerCase();if(/clos|inactive|not |stop|suspend|مغلق|مقفل|موقوف|متوقف|غير/.test(t))return"no";if(/open|activ|work|operat|live|مفتوح|شغال|نشط|فعال/.test(t))return"ok";return"na"};
 const brToday=r=>{const d=new Date().getDay();return d===4?r[12]:d===5?r[13]:r[11]};
@@ -2897,9 +2940,9 @@ function brBand(){return BR.rows.length?`<a class="band${uview==="branches"?" on
 function brFilter(){
  const t=brN(BRQ.q).trim(),toks=t?t.split(/\s+/).filter(Boolean):[],out=[];
  BR.rows.forEach((r,i)=>{
-  if(BRQ.layer&&r[0]!==BRQ.layer)return;if(BRQ.gov&&r[5]!==BRQ.gov)return;if(BRQ.st&&r[3]!==BRQ.st)return;
+  if(BRQ.layer&&r[0]!==BRQ.layer)return;if(BRQ.gov&&r[5]!==BRQ.gov)return;if(BRQ.city&&r[6]!==BRQ.city)return;if(BRQ.st&&r[3]!==BRQ.st)return;
   let sc=0;
-  if(toks.length){if(!toks.every(w=>BR.h[i].includes(w)))return;
+  if(toks.length){const f=BRQ.f||"all",hy=f==="name"?BR.nm[i]:f==="code"?BR.cd[i]:f==="layer"?BR.ly[i]:f==="gov"?BR.gv[i]:f==="addr"?BR.ad[i]:BR.h[i];if(!toks.every(w=>hy.includes(w)))return;
    const cd=BR.cd[i],nm=BR.nm[i],ly=BR.ly[i];
    sc=(cd===t?100:0)+(cd.startsWith(t)?60:0)+(nm.startsWith(t)?40:0)+(nm.includes(t)?25:0)+(ly.includes(t)?10:0)}
   out.push([sc,i])});
@@ -2921,12 +2964,14 @@ function brUserBody(){
  const back='<button class="btn gh bk" data-act="us_home">← الرئيسية</button>';
  if(!BR.ok)return back+(BR.err?'<div class="empty">تعذر تحميل الفروع — جرّب Refresh.</div>':'<div class="empty"><i class=spn></i> Loading...</div>');
  if(!BR.rows.length)return back+'<div class="empty">لا توجد فروع مضافة حاليًا.</div>';
- const on=BRQ.q||BRQ.layer||BRQ.gov||BRQ.st;
+ const on=BRQ.q||BRQ.layer||BRQ.gov||BRQ.city||BRQ.st||(BRQ.f&&BRQ.f!=="all");
+ const SC=[["all","الكل"],["name","اسم الفرع"],["code","الكود"],["layer","Layer"],["gov","المحافظة"],["addr","العنوان"]],sf=BRQ.f||"all",PH={all:"ابحث باسم الفرع أو الكود أو الـ Layer أو العنوان...",name:"ابحث باسم الفرع...",code:"ابحث بكود الفرع...",layer:"ابحث بالـ Layer...",gov:"ابحث بالمحافظة...",addr:"ابحث بالعنوان أو المدينة أو الحي..."};
+ const scope=`<div class="brch brsc"><span class="brsl">بحث في:</span>${SC.map(x=>`<button type="button" class="brc${sf===x[0]?" on":""}" data-act="br_scope" data-id="${x[0]}">${x[1]}</button>`).join("")}</div>`;
  const chips=`<div class="brch"><button type="button" class="brc${BRQ.layer?"":" on"}" data-act="br_layer" data-id="all">All<em>${BR.rows.length}</em></button>${BR.layers.map((l,i)=>`<button type="button" class="brc${BRQ.layer===l[0]?" on":""}" style="--lc:${BRPAL[i%BRPAL.length]}" data-act="br_layer" data-id="${i}"><i class="brdot"></i>${esc(l[0])}<em>${l[1]}</em></button>`).join("")}</div>`;
  const sel=(k,lab,arr)=>`<select data-brf="${k}" aria-label="${lab}"><option value="">${lab}</option>${arr.map(x=>`<option value="${esc(x[0])}"${BRQ[k]===x[0]?" selected":""}>${esc(x[0])} (${x[1]})</option>`).join("")}</select>`;
  return back+`<div class="brtop"><div class="brtit"><i>${I.pin}</i><div><h2>Etisalat Branches</h2><small>فروع اتصالات · ${BR.rows.length} فرع</small></div></div><button type="button" class="btn gh sm" data-act="br_ref">${RFI}<span>Refresh</span></button></div>
-<div class="brsb"><span class="brsi">${I.search}</span><input id="brq" placeholder="ابحث باسم الفرع أو الكود أو الـ Layer..." value="${esc(BRQ.q)}" autocomplete="off"><button type="button" class="brxb" id="brqx" data-act="br_qclear"${BRQ.q?"":" hidden"}>✕</button></div>
-${BR.layers.length>1?chips:""}<div class="brfl">${BR.govs.length>1?sel("gov","كل المحافظات",BR.govs):""}${BR.sts.length>1?sel("st","كل الحالات",BR.sts):""}${on?'<button type="button" class="btn gh sm" data-act="br_clear">Clear filters</button>':""}</div><div id="brres">${brResHTML()}</div>`}
+<div class="brsb"><span class="brsi">${I.search}</span><input id="brq" placeholder="${PH[sf]}" value="${esc(BRQ.q)}" autocomplete="off"><button type="button" class="brxb" id="brqx" data-act="br_qclear"${BRQ.q?"":" hidden"}>✕</button></div>
+${scope}${BR.layers.length?chips:""}<div class="brfl">${BR.govs.length?sel("gov","كل المحافظات",BR.govs):""}${BR.cities.length?sel("city","كل المدن",BR.cities):""}${BR.sts.length?sel("st","كل الحالات",BR.sts):""}${on?'<button type="button" class="btn gh sm" data-act="br_clear">Clear filters</button>':""}</div><div id="brres">${brResHTML()}</div>`}
 function brDetail(i){const r=BR.rows[i];if(!r)return;const c=brCol(r[0]),d=new Date().getDay();
  const cp=f=>`<button type="button" class="brcp" data-act="br_cpv" data-id="${i}:${f}" title="Copy" aria-label="Copy">${I.copy}</button>`;
  const row=(lab,v,f,ltr)=>v?`<div class="brr"><span class="brrl">${lab}</span><span class="brrv" dir="${ltr?"ltr":"auto"}">${esc(v)}</span>${f!=null?cp(f):""}</div>`:"";
@@ -2955,6 +3000,7 @@ function brAct(a,id){
  case"br_detail":brDetail(+id);break;
  case"br_copy":{const r=BR.rows[+id];if(r&&r[1]){doCopy(r[1]);logAct("copy",r[1],"")}break}
  case"br_cpv":{const p=String(id).split(":"),r=BR.rows[+p[0]],v=r&&r[+p[1]];if(v)copyText(v).then(ok=>toast(ok?"✓ Copied — "+v:"Auto-copy failed, select and copy manually",ok?"":"err"));break}
+ case"br_scope":BRQ.f=id;BRQ.lim=60;brRerender();{const i=$("#brq");if(i)i.focus()}break;
  case"br_more":BRQ.lim+=60;brRefreshRes();break;
  case"br_layer":BRQ.layer=id==="all"?"":((BR.layers[+id]||[""])[0]);BRQ.lim=60;brRerender();break;
  case"br_clear":BRQ={q:"",layer:"",gov:"",st:"",lim:60};brRerender();break;
@@ -2973,12 +3019,56 @@ document.addEventListener("change",async e=>{const t=e.target;
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("brk")){e.preventDefault();brDetail(+e.target.dataset.id)}});
 setInterval(()=>{if(session&&!document.hidden&&((session.role==="user"&&uview==="branches")||(isAdm()&&page==="branches")))brLoad()},60000);
 
+/* ===== Daily Balance (رصيد الموظف اليومي) — localStorage per employee, resets every day ===== */
+I.wallet=_i('<path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3"/><path d="M21 10h-4a2 2 0 0 0 0 4h4z"/>');
+const balK=()=>"ShortCodeAssistant_bal_"+(session?session.uid:"");
+const balDay=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const balFmt=n=>(Math.round(n*100)/100).toLocaleString("en-US");
+const balTime=t=>new Date(t).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+function balGet(){try{const o=JSON.parse(localStorage.getItem(balK())||"null");if(o&&typeof o==="object")return{limit:+o.limit>0?+o.limit:500,days:o.days&&typeof o.days==="object"?o.days:{}}}catch(e){}return{limit:500,days:{}}}
+function balSave(b){const ks=Object.keys(b.days).sort();while(ks.length>60)delete b.days[ks.shift()];
+ try{localStorage.setItem(balK(),JSON.stringify(b));return true}catch(e){toast("تعذر حفظ الرصيد","err");return false}}
+const balUsed=d=>(d.items||[]).reduce((s,x)=>s+(+x.a||0),0);
+function balRow(x,del){return`<div class="balr"><time dir="ltr">${balTime(x.t)}</time><span class="balnote">${esc(x.n||"—")}</span><b dir="ltr">${balFmt(x.a)}</b>${del?`<button type="button" class="balx" data-act="bal_del" data-id="${x.t}" title="حذف" aria-label="حذف">✕</button>`:""}</div>`}
+function balHTML(){
+ if(!session||session.role!=="user")return"";
+ const b=balGet(),k=balDay(),d=b.days[k]||{lim:b.limit,items:[]},lim=+d.lim>0?+d.lim:b.limit,used=balUsed(d),rem=lim-used,pct=Math.max(0,Math.min(100,rem/lim*100));
+ const cls=rem<=0?" out":pct<=20?" low":"",L=(d.items||[]).slice().reverse();
+ return`<section class="balc${cls}" id="balc" data-day="${k}"><div class="balh"><div class="balt"><i>${I.wallet}</i><div><h3>Daily Balance · رصيدي النهارده</h3><small>بيتجدد كل يوم · الحد اليومي <b dir="ltr">${balFmt(lim)}</b> جنيه</small></div></div><button type="button" class="balb" data-act="bal_set">تعديل الحد</button></div>
+<div class="balm"><div class="balv"><b dir="ltr">${balFmt(rem)}</b><span>${rem<0?"جنيه (تجاوزت الحد)":"جنيه متبقي"}</span></div><div class="balside"><div class="balbar"><i style="width:${pct}%"></i></div><div class="balst"><span>اتضاف النهارده: <b dir="ltr">${balFmt(used)}</b></span><span>${L.length} عملية</span></div></div></div>
+<div class="balf"><input id="balamt" data-bal="1" type="text" inputmode="decimal" placeholder="المبلغ اللي ضفته (جنيه)" autocomplete="off"><input id="balnote" data-bal="1" placeholder="رقم العميل / ملاحظة (اختياري)" autocomplete="off"><button type="button" class="btn" data-act="bal_add">+ إضافة</button></div>
+<div class="balh2"><span>سجل النهارده</span><button type="button" class="balb" data-act="bal_hist">كل الأيام</button></div>
+<div class="ball">${L.length?L.slice(0,5).map(x=>balRow(x,true)).join("")+(L.length>5?`<div class="balmore">+ ${L.length-5} عملية أقدم — اضغط «كل الأيام»</div>`:""):'<div class="balem">لسه مفيش إضافات النهارده.</div>'}</div></section>`}
+function balRefresh(){const e=$("#balc");if(e)e.outerHTML=balHTML()}
+function balAct(a,id){
+ const b=balGet(),k=balDay();
+ switch(a){
+ case"bal_add":{const el=$("#balamt"),nt=$("#balnote");if(!el)return;
+  const v=parseFloat(cNorm(el.value).replace(/[^0-9.\-]/g,""));
+  if(!isFinite(v)||v<=0){toast("اكتب مبلغ صحيح","err");el.focus();return}
+  const d=b.days[k]=b.days[k]||{lim:b.limit,items:[]};
+  d.items.push({a:Math.round(v*100)/100,t:Date.now(),n:(nt?nt.value:"").trim().slice(0,80)});
+  if(!balSave(b))return;
+  const rem=(+d.lim>0?+d.lim:b.limit)-balUsed(d);
+  balRefresh();const e2=$("#balamt");if(e2)e2.focus();
+  toast(rem<0?"⚠ تجاوزت الحد اليومي — المتبقي "+balFmt(rem):"✓ اتسجلت — المتبقي "+balFmt(rem)+" جنيه",rem<0?"err":"");break}
+ case"bal_del":confirmModal("تحذف العملية دي من السجل؟ المبلغ هيرجع للرصيد.","Delete",()=>{const d=b.days[k];if(!d)return;d.items=d.items.filter(x=>String(x.t)!==String(id));if(balSave(b)){balRefresh();toast("تم الحذف")}},"حذف عملية");break;
+ case"bal_set":formModal("الحد اليومي للرصيد",inp("الرصيد اللي معاك كل يوم (جنيه)","lim",b.limit,"number")+'<p style="color:var(--mut);font-size:.85rem;line-height:1.7">الحد ده بيتجدد كل يوم تلقائي. تقدر تغيّره في أي وقت.</p>',"Save",d=>{
+  const v=parseFloat(cNorm(d.lim));if(!isFinite(v)||v<=0)return"اكتب رقم أكبر من صفر";
+  b.limit=v;if(b.days[k])b.days[k].lim=v;if(!balSave(b))return"تعذر الحفظ";balRefresh();toast("✓ تم تحديث الحد اليومي")});break;
+ case"bal_hist":{const ks=Object.keys(b.days).sort().reverse().slice(0,30);
+  const body=ks.length?ks.map(dk=>{const d=b.days[dk],lim=+d.lim>0?+d.lim:b.limit,u=balUsed(d),it=(d.items||[]).slice().reverse();return`<div class="balday"><div class="balds"><b dir="ltr">${dk}</b><span>اتضاف <b dir="ltr">${balFmt(u)}</b> · متبقي <b dir="ltr">${balFmt(lim-u)}</b> من <span dir="ltr">${balFmt(lim)}</span></span></div>${it.length?it.map(x=>balRow(x,false)).join(""):'<div class="balem">مفيش إضافات.</div>'}</div>`}).join(""):'<div class="balem">مفيش سجل لسه.</div>';
+  $("#modal").innerHTML=`<div class="ov"><div class="md balmd"><h3>سجل الإضافات</h3><div class="balhist">${body}</div><div class="row"><button type="button" class="btn gh" data-act="close">Close</button></div></div></div>`;break}}}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.bal){e.preventDefault();balAct("bal_add")}});
+setInterval(()=>{if(session&&session.role==="user"&&!document.hidden){const e=$("#balc");if(e&&e.dataset.day!==balDay()&&!(document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.bal))balRefresh()}},60000);
+
 /* ===== Actions ===== */
 function act(a,id){
  if(a==="sharecopy"){copyText(SHARE_URL).then(ok=>toast(ok?"✓ Link copied — "+SHARE_URL:"Copy failed, select and copy manually",ok?"":"err"));return}if(a==="sharemail"){shareMail();return}if(a==="shareopen"){shareOpen();return}
  if(a==="calcsave"){calcSave();return}if(a==="calcreset"){calcReset();return}
  if(a==="nopen"||a==="nref"||a==="nsend"||a==="ndel"||a==="nread"||a==="nreadall"){nAct(a,id);return}
  if(/^br_/.test(a)){brAct(a,id);return}
+  if(/^bal_/.test(a)){balAct(a,id);return}
   if(/^(ls_|us_)/.test(a)||a==="cdesc"||a==="cdescp"||a==="litem"){lAct(a,id);return}
  const ok=()=>{save();render()};
  switch(a){
